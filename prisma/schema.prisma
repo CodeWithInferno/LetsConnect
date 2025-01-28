@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String      @id @default(uuid())
+  email           String      @unique
+  name            String?
+  username        String      @unique
+  number          String?
+  phone_extension String?
+  profile_picture String?
+  joined_at       DateTime    @default(now())
+  role            String?
+  interests       String?
+  qualifications  String?
+  timezone        String?
+  rating          Int?
+  skills          UserSkill[]
+  organizations   OrganizationMember[]
+  projects        Project[]   @relation("UserProjects") // Relation to the Project model (Owner)
+
+  projectMemberships ProjectMember[] // Relation to project memberships
+}
+
+model Skill {
+  id       String      @id @default(uuid())
+  name     String      @unique
+  isCustom Boolean     @default(false)
+  users    UserSkill[]
+}
+
+model UserSkill {
+  userId  String
+  skillId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill   Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([userId, skillId])
+}
+
+model Organization {
+  id              String   @id @default(uuid())
+  name            String
+  slug            String   @unique
+  phone_extension String?
+  number          String?
+  logo            String?
+  industry        String?
+  location        String?
+  timezone        String?
+  createdAt       DateTime @default(now())
+  projects        Project[] // Relation to projects owned by the organization
+
+  members OrganizationMember[]
+}
+
+model OrganizationMember {
+  userId         String
+  organizationId String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           String       // Owner, Admin, Member, etc.
+  joinedAt       DateTime     @default(now())
+
+  @@id([userId, organizationId]) // Composite primary key
+}
+
+model Project {
+  id                 String    @id @default(uuid()) // Unique identifier for the project
+  title              String    // Title of the project
+  description        String    // Description of the project
+  projectType        String    // Type of the project (e.g., open-source, research, freelance)
+  email              String    // User's email from Auth0 (used for association)
+  ownerId            String    // Owner's ID (User)
+  owner              User      @relation("UserProjects", fields: [ownerId], references: [id], onDelete: Cascade) // Connect to User
+  organizationId     String?   // Nullable in case the project is not tied to an organization
+  organization       Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade) // Connect to Organization
+  skillsRequired     String[]  // Array of skills required for the project
+  languages          String[]  // Array of programming languages related to the project
+  deadline           DateTime  // Project deadline
+  budget             Float?    // Optional budget field
+  certificateEligible Boolean  @default(false) // Whether contributors get a certificate
+  bannerImage        String?   // Optional URL for the banner image
+  members            ProjectMember[] // Relation to project members
+  createdAt          DateTime  @default(now()) // Timestamp for when the project was created
+  updatedAt          DateTime  @updatedAt      // Automatically updated timestamp for edits
+
+  @@index([ownerId])
+  @@index([organizationId])
+}
+
+model ProjectMember {
+  id         String   @id @default(uuid()) // Unique identifier for the project member
+  userId     String   // ID of the user
+  projectId  String   // ID of the project
+  role       String   // Role in the project (e.g., "Contributor", "Reviewer")
+  joinedAt   DateTime @default(now()) // Timestamp for when the user joined the project
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade) // Connect to User
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade) // Connect to Project
+
+  @@unique([userId, projectId]) // Ensure a user can only have one role in a project
+}
