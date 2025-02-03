@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 
 export async function POST(req) {
   try {
+    // 1. Check Auth Session
     const session = await getSession();
     if (!session?.user) {
       return new Response(
@@ -13,7 +14,7 @@ export async function POST(req) {
 
     const userEmail = session.user.email;
 
-    // Parse the request body
+    // 2. Parse the request body
     const {
       title,
       description,
@@ -24,18 +25,21 @@ export async function POST(req) {
       budget,
       certificateEligible = false,
       bannerImage,
+      githubRepo,  // New GitHub repository field
     } = await req.json();
 
-    if (!title || !description || !projectType) {
+    // 3. Validate required fields
+    if (!title || !description || !projectType || !githubRepo) {
       return new Response(
         JSON.stringify({
-          error: 'Title, description, and project type are required.',
+          error:
+            'Title, description, project type, and GitHub repository are required.',
         }),
         { status: 400 }
       );
     }
 
-    // Fetch the user
+    // 4. Find the User & Organization
     const user = await prisma.user.findUnique({
       where: { email: userEmail },
       include: {
@@ -54,9 +58,7 @@ export async function POST(req) {
       );
     }
 
-    // Fetch the organization linked to the user
-    const userOrganization = user.organizations[0]?.organization; // Assuming the user has only one organization
-
+    const userOrganization = user.organizations[0]?.organization;
     if (!userOrganization) {
       return new Response(
         JSON.stringify({ error: 'Organization not found for the user.' }),
@@ -64,7 +66,7 @@ export async function POST(req) {
       );
     }
 
-    // Create the project
+    // 5. Create the Project and insert the owner as a member (role: "OWNER")
     const project = await prisma.project.create({
       data: {
         title,
@@ -79,18 +81,45 @@ export async function POST(req) {
         budget: budget ? parseFloat(budget) : null,
         certificateEligible,
         bannerImage: bannerImage || null,
+        githubRepo,  // Include the GitHub repository field here
         createdAt: new Date(),
         updatedAt: new Date(),
+        // Insert the owner as a project member with role "OWNER"
+        members: {
+          create: [
+            {
+              user: { connect: { id: user.id } },
+              role: 'OWNER',
+              status: 'ACTIVE',
+            },
+          ],
+        },
+      },
+      include: {
+        members: true,
+      },
+    });
+
+    // 6. Initialize a default Kanban board for the project
+    const board = await prisma.kanbanBoard.create({
+      data: {
+        projectId: project.id,
+        columns: {
+          create: [
+            { title: 'To Do', color: '#6366F1', order: 1 },
+            { title: 'In Progress', color: '#EC4899', order: 2 },
+            { title: 'Done', color: '#10B981', order: 3 },
+          ],
+        },
       },
     });
 
     return new Response(
-      JSON.stringify({ success: true, project }),
+      JSON.stringify({ success: true, project, board }),
       { status: 201 }
     );
   } catch (error) {
     console.error('Error creating project:', error);
-
     return new Response(
       JSON.stringify({ error: 'Internal Server Error' }),
       { status: 500 }

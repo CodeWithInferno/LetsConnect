@@ -12,6 +12,14 @@ body {
   }
 }
 
+* {
+  user-select: none;
+
+}
+main {
+  overflow-x: hidden;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -101,5 +109,18 @@ body {
 @supports not (grid-template-rows: masonry) {
   .masonry-grid > * {
     margin-bottom: 1.5rem;
+  }
+}
+
+
+@media (max-width: 768px) {
+  main {
+    margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .ml-64, .ml-20 {
+    margin-left: 0;
   }
 }
