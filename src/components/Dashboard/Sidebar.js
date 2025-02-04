@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Settings, Users, FileText, Calendar, LayoutGrid } from "lucide-react";
+import { Home, Settings, Users, FileText, Calendar, LayoutGrid, Github } from "lucide-react";
 import { useRouter, usePathname, useParams } from "next/navigation";
 
 export default function Sidebar({ isOpen, isMobile, toggle }) {
@@ -19,6 +19,8 @@ export default function Sidebar({ isOpen, isMobile, toggle }) {
     { icon: Users, label: "Team", path: isProjectDashboard ? `/dashboard/manage/${projectId}/teams` : "/teams" },
     { icon: FileText, label: "Projects", path: "/projects" },
     { icon: Calendar, label: "Calendar", path: isProjectDashboard ? `/dashboard/manage/${projectId}/calendar` : "/calendar" },
+    { icon: Github, label: "Github", path: isProjectDashboard ? `/dashboard/manage/${projectId}/github` : "/github" },
+
     // Conditionally add the Kanban menu item if we're in a project context.
     ...(isProjectDashboard ? [{ icon: LayoutGrid, label: "Kanban", path: `/dashboard/manage/${projectId}/kanban` }] : []),
     { icon: Settings, label: "Settings", path: isProjectDashboard ? `/dashboard/manage/${projectId}/settings` : "/settings" },

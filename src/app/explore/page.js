@@ -1,65 +1,14 @@
-// 'use client';
-// import { useEffect, useState } from "react";
-// import ProjectCard from "@/components/explore/ProjectCard";
-
-// export default function ExplorePage() {
-//   const [projects, setProjects] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     async function fetchProjects() {
-//       try {
-//         const response = await fetch("/api/project/explore/fetch");
-//         const data = await response.json();
-//         setProjects(data); // Store the fetched projects
-//         setLoading(false);
-//       } catch (error) {
-//         console.error("Error fetching projects:", error);
-//         setLoading(false);
-//       }
-//     }
-
-//     fetchProjects();
-//   }, []);
-
-//   if (loading) {
-//     return <div>Loading projects...</div>;
-//   }
-
-//   if (!projects.length) {
-//     return <div>No projects found.</div>;
-//   }
-
-//   return (
-//     <div className="p-6">
-//       <h1 className="text-3xl font-bold mb-6">Explore Projects</h1>
-//       {/* Masonry Grid */}
-//       <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-//         {projects.map((project) => (
-//           <div key={project.id} className="break-inside-avoid">
-//             <ProjectCard project={project} />
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// }
-
-
-
 "use client";
 import { useEffect, useState } from "react";
 import ProjectCard from "@/components/explore/ProjectCard";
 import { useUser } from "@auth0/nextjs-auth0/client";
-
+import Navbar from "@/components/explore/Navbar";
 
 export default function ExplorePage() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-
-
   const { user } = useUser();
-
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     async function fetchProjects() {
@@ -91,6 +40,7 @@ export default function ExplorePage() {
               members {
                 id
                 role
+                status
                 user {
                   id
                   username
@@ -102,13 +52,11 @@ export default function ExplorePage() {
             }
           }
         `;
-
         const response = await fetch("/api/graphql", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query }),
         });
-
         const { data } = await response.json();
         if (data?.projects) {
           setProjects(data.projects);
@@ -119,34 +67,55 @@ export default function ExplorePage() {
         setLoading(false);
       }
     }
-
     fetchProjects();
   }, []);
 
   if (loading) {
-    return <div className="p-6">Loading projects...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-500"></div>
+      </div>
+    );
   }
 
-  if (!projects.length) {
-    return <div className="p-6">No projects found.</div>;
-  }
+  // Filter projects by title (case-insensitive)
+  const filteredProjects = projects.filter(project =>
+    project.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="relative min-h-screen p-6">
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Sticky Navbar */}
+      <div className="sticky top-0 z-50">
+        <Navbar searchValue={searchQuery} onSearchChange={setSearchQuery} />
+      </div>
+      
       {/* LIGHT MODE BACKGROUND */}
       <div className="dark:hidden absolute inset-0 -z-10 h-full w-full bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]" />
-
+      
       {/* DARK MODE BACKGROUND */}
       <div className="hidden dark:block absolute inset-0 -z-10 h-full w-full bg-[#000000] bg-[radial-gradient(#ffffff33_1px,#00091d_1px)] bg-[size:20px_20px]" />
+      
+      {/* Content: add top padding to avoid being hidden behind the sticky navbar */}
+      <div className="p-6 pt-24">
 
-      <h1 className="text-3xl font-bold mb-6">Explore Projects</h1>
-      <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-        {projects.map((project) => (
-          <div key={project.id} className="break-inside-avoid">
-          {/* 3. Pass `currentUser={user}` so the card knows who’s logged in */}
-          <ProjectCard project={project} currentUser={user} />
-        </div>
-        ))}
+        
+        {filteredProjects.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProjects.map((project) => (
+              <ProjectCard 
+                key={project.id} 
+                project={project} 
+                currentUser={user} 
+                className="transform transition-transform duration-300 hover:-translate-y-2"
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-gray-600 dark:text-gray-400">
+            No projects match your search.
+          </div>
+        )}
       </div>
     </div>
   );

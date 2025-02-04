@@ -88,7 +88,7 @@ export default function ProjectDashboard() {
       // Check if current user is the project owner
       const isOwner = project.owner.id === user.sub;
       if (!isOwner) {
-        router.push(`/project/${projectId}`); // Redirect to contributor view
+        console.log("User is not the project owner");
       }
     }
   }, [project, user, router, projectId]);
