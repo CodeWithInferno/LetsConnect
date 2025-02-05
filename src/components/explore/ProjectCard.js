@@ -142,24 +142,26 @@ const ProjectCard = ({ project, currentUser }) => {
         </p>
 
         {/* Skills & Languages */}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {(project.skillsRequired || []).map((skill, index) => (
-            <span
-              key={index}
-              className="px-2.5 py-1 text-xs font-medium rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-            >
-              {skill}
-            </span>
-          ))}
-          {(project.languages || []).map((language, index) => (
-            <span
-              key={index}
-              className="px-2.5 py-1 text-xs font-medium rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"
-            >
-              {language}
-            </span>
-          ))}
-        </div>
+ {/* Skills & Languages */}
+<div className="mt-4 flex flex-wrap gap-2">
+  {(project.skillsRequired || []).map((skill, index) => (
+    <span
+      key={index}
+      className="px-2.5 py-1 text-xs font-medium rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+    >
+      {skill.name} {/* ✅ Use skill.name instead of the whole object */}
+    </span>
+  ))}
+  {(project.languages || []).map((language, index) => (
+    <span
+      key={index}
+      className="px-2.5 py-1 text-xs font-medium rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"
+    >
+      {language.name} {/* ✅ Use language.name instead of the whole object */}
+    </span>
+  ))}
+</div>
+
 
         {/* Basic Info */}
         <div className="mt-4 flex flex-wrap gap-4 text-sm">

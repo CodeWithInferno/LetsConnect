@@ -496,15 +496,15 @@ const resolvers = {
     // ------------------------------------------------------------------------
     projects: async (_, args, context) => {
       console.log("📌 Resolving 'projects' query...");
-
+    
       if (!context || !context.prisma) {
         console.error("❌ Prisma client is missing in GraphQL context.");
         throw new Error("❌ Prisma client is missing in GraphQL context.");
       }
-
+    
       const { prisma } = context;
       const filters = {};
-
+    
       if (args.projectType) {
         filters.projectType = args.projectType;
       }
@@ -512,9 +512,9 @@ const resolvers = {
         filters.organizationId = args.organizationId;
       }
       if (args.skillsRequired && args.skillsRequired.length) {
-        filters.skillsRequired = { hasSome: args.skillsRequired };
+        filters.skillsRequired = { some: { id: { in: args.skillsRequired } } };
       }
-
+    
       return prisma.project.findMany({
         where: filters,
         include: {
@@ -534,9 +534,12 @@ const resolvers = {
               logo: true,
             },
           },
+          skillsRequired: true, // ✅ Include skills
+          languages: true, // ✅ Include programming languages
         },
       });
     },
+    
 
     // ------------------------------------------------------------------------
     // 2) myProjects (projects the user is a member of)
@@ -639,29 +642,28 @@ const resolvers = {
     // 4) myUser
     // ------------------------------------------------------------------------
     myUser: async (_, __, { prisma, user }) => {
-      console.log("Resolving 'myUser' query...");
-
+      console.log("📌 Resolving 'myUser' query...");
+    
       if (!user) {
         throw new Error("Not logged in");
       }
-
+    
       const dbUser = await prisma.user.findUnique({
         where: { email: user.email },
         include: {
-          organizations: {
-            include: {
-              organization: true,
-            },
-          },
+          skills: { include: { skill: true } },  // ✅ Ensure skills are included
+          programmingLanguages: true,  // ✅ Ensure programming languages are included
         },
       });
-
+    
       if (!dbUser) {
         throw new Error("User not found in DB");
       }
-
+    
+      console.log("✅ User fetched:", dbUser);
       return dbUser;
     },
+    
 
     // ------------------------------------------------------------------------
     // 5) myNotifications

@@ -2,7 +2,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { UserProvider } from '@auth0/nextjs-auth0/client';
 import { ThemeProvider } from "@/providers/ThemeProvider";
-
+import { AuthUserProvider } from "@/context/AuthUserContext";
 
 
 
@@ -26,10 +26,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <UserProvider>
-          <ThemeProvider>
-            {children}
-          </ThemeProvider>
+        <UserProvider> {/* Auth0 Provider */}
+          <AuthUserProvider> {/* Custom Context */}
+            <ThemeProvider>
+              {children}
+            </ThemeProvider>
+          </AuthUserProvider>
         </UserProvider>
       </body>
     </html>

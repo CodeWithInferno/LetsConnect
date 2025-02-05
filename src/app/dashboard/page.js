@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { Moon, Sun, Plus, ArrowRight, Loader2, Bell } from "lucide-react";
+import { Moon, Sun, Plus, ArrowRight, Loader2, Bell, Settings } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -150,7 +150,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen p-8 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl dark:bg-gray-900  mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -159,6 +159,14 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" onClick={toggleTheme} className="rounded-full">
               {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => router.push("/settings")}
+              className="rounded-full"
+            >
+              <Settings className="h-5 w-5" />
             </Button>
             <Button
               variant="outline"
@@ -185,7 +193,7 @@ export default function DashboardPage() {
         {isManagerWithoutOrg ? (
           // Manager without an organization
           <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <CardContent className="flex dark:bg-gray-900  flex-col items-center justify-center py-12 text-center">
               <p className="text-gray-500 dark:text-gray-400 mb-4">
                 You need an organization to manage projects
               </p>

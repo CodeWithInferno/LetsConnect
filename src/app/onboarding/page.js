@@ -189,6 +189,7 @@ export default function OnboardingForm() {
     });
   };
 
+  
   const steps = [
     {
       id: 1,
@@ -342,14 +343,21 @@ export default function OnboardingForm() {
       id: 5,
       fields: (
         <>
-          <Label className="text-lg font-semibold">
-            Skills & Interests
-          </Label>
-          <SkillsInput
-            value={formData.skills}
-            onChange={(skills) => setFormData({...formData, skills})}
-          />
-        </>
+      <Label className="text-lg font-semibold">Skills</Label>
+      <SkillsInput
+        value={formData.skills || []} // Ensure it's always an array
+        onChange={(skills) => setFormData({ ...formData, skills })}
+      />
+
+      <Label className="text-lg font-semibold mt-4">Programming Languages</Label>
+      <SkillsInput
+        value={formData.programmingLanguages || []} // Ensure it's always an array
+        onChange={(programmingLanguages) =>
+          setFormData({ ...formData, programmingLanguages })
+        }
+      />
+
+      </>
       ),
     },
     {
@@ -398,42 +406,33 @@ export default function OnboardingForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    let imageUrl = null;
-
-    // Only attempt image upload if a file exists
+  
+    let imageUrl = formData.profilePicture;
+  
+    // Upload Image Only If a New File Is Selected
     if (formData.profilePicture instanceof File) {
       const uploadFormData = new FormData();
       uploadFormData.append("file", formData.profilePicture);
-
+  
       try {
         const uploadResponse = await fetch("/api/user/uploadImage", {
           method: "POST",
-          body: uploadFormData, // <--- FIXED VARIABLE NAME
+          body: uploadFormData,
         });
-
-        // Handle HTML responses (like 404 pages)
-        const contentType = uploadResponse.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          const text = await uploadResponse.text();
-          throw new Error(`Invalid response: ${text.slice(0, 100)}`);
-        }
-
+  
         if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json();
-          throw new Error(errorData.error);
+          throw new Error("Image upload failed");
         }
-
+  
         const { url } = await uploadResponse.json();
         imageUrl = url;
       } catch (error) {
         console.error("Upload error:", error);
-        alert(error.message || "Image upload failed");
+        alert("Failed to upload image.");
         return;
       }
     }
-
-    // Step 3: Prepare complete form data
+  
     const userData = {
       name: formData.name,
       username: formData.username,
@@ -441,25 +440,26 @@ export default function OnboardingForm() {
       phone_extension: formData.phoneExtension,
       profilePicture: imageUrl,
       role: formData.role,
-      skills: formData.skills,
       timezone: formData.timezone,
+      
+      // ✅ Ensure only strings are sent (Prisma needs string array)
+      skills: formData.skills || [],
+      programmingLanguages: formData.programmingLanguages || []
     };
-
+    
+  
     try {
-      // Step 4: Submit all user data
       const response = await fetch("/api/user/onboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
       });
-
-      // Handle onboarding response
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Profile creation failed");
       }
-
-      // Handle success
+  
       const result = await response.json();
       console.log("Onboarding success:", result);
       alert("Profile created successfully!");
@@ -469,6 +469,7 @@ export default function OnboardingForm() {
       alert(error.message || "Failed to create profile. Please try again.");
     }
   };
+  
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">

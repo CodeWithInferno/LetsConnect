@@ -23,8 +23,7 @@ import {
 import { Sparkles, Stars } from "lucide-react";
 import DisplayCard from "@/components/projects/DisplayCard";
 import RepositorySelector from "./RepositorySelector";
-
-
+import { SkillsInput } from "@/components/ui/SkillsInput";
 
 export default function ProjectForm({ userData }) {
   const [toastMessage, setToastMessage] = useState(null);
@@ -56,7 +55,6 @@ export default function ProjectForm({ userData }) {
       [name]: type === "checkbox" ? checked : value,
     }));
   };
-  
 
   const handleSkillChange = (e) => {
     const { value } = e.target;
@@ -191,8 +189,10 @@ export default function ProjectForm({ userData }) {
               )}
             </div>
 
-            <RepositorySelector selectedRepo={formData.githubRepo} onSelectRepo={handleRepoSelect} />
-
+            <RepositorySelector
+              selectedRepo={formData.githubRepo}
+              onSelectRepo={handleRepoSelect}
+            />
 
             {/* Project Title */}
             <div className="space-y-2">
@@ -261,6 +261,7 @@ export default function ProjectForm({ userData }) {
             </div>
 
             {/* Two Column Layout for Skills and Languages */}
+            {/* Skills & Programming Languages Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Skills Required */}
               <div className="space-y-2">
@@ -270,14 +271,12 @@ export default function ProjectForm({ userData }) {
                 >
                   Skills Required
                 </Label>
-                <Input
-                  id="skillsRequired"
-                  name="skillsRequired"
-                  value={formData.skillsRequired.join(", ")}
-                  onChange={handleSkillChange}
-                  placeholder="Enter required skills"
-                  className="w-full transition-all duration-300 bg-white/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:border-blue-400 dark:hover:border-blue-500"
-                  required
+                <SkillsInput
+                  value={formData.skillsRequired}
+                  onChange={(skills) =>
+                    setFormData((prev) => ({ ...prev, skillsRequired: skills }))
+                  }
+                  placeholder="Select or type skills"
                 />
               </div>
 
@@ -289,21 +288,12 @@ export default function ProjectForm({ userData }) {
                 >
                   Programming Languages
                 </Label>
-                <Input
-                  id="languages"
-                  name="languages"
-                  value={formData.languages.join(", ")}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      languages: e.target.value
-                        .split(",")
-                        .map((lang) => lang.trim()),
-                    }))
+                <SkillsInput
+                  value={formData.languages}
+                  onChange={(languages) =>
+                    setFormData((prev) => ({ ...prev, languages }))
                   }
-                  placeholder="Enter languages"
-                  className="w-full transition-all duration-300 bg-white/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:border-blue-400 dark:hover:border-blue-500"
-                  required
+                  placeholder="Select or type programming languages"
                 />
               </div>
             </div>

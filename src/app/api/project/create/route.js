@@ -6,15 +6,12 @@ export async function POST(req) {
     // 1. Check Auth Session
     const session = await getSession();
     if (!session?.user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized. Please log in.' }),
-        { status: 401 }
-      );
+      return new Response(JSON.stringify({ error: 'Unauthorized. Please log in.' }), { status: 401 });
     }
 
     const userEmail = session.user.email;
 
-    // 2. Parse the request body
+    // 2. Parse request body
     const {
       title,
       description,
@@ -25,16 +22,13 @@ export async function POST(req) {
       budget,
       certificateEligible = false,
       bannerImage,
-      githubRepo,  // New GitHub repository field
+      githubRepo,
     } = await req.json();
 
     // 3. Validate required fields
     if (!title || !description || !projectType || !githubRepo) {
       return new Response(
-        JSON.stringify({
-          error:
-            'Title, description, project type, and GitHub repository are required.',
-        }),
+        JSON.stringify({ error: 'Title, description, project type, and GitHub repository are required.' }),
         { status: 400 }
       );
     }
@@ -44,29 +38,43 @@ export async function POST(req) {
       where: { email: userEmail },
       include: {
         organizations: {
-          include: {
-            organization: true,
-          },
+          include: { organization: true },
         },
       },
     });
 
     if (!user) {
-      return new Response(
-        JSON.stringify({ error: 'User not found.' }),
-        { status: 404 }
-      );
+      return new Response(JSON.stringify({ error: 'User not found.' }), { status: 404 });
     }
 
     const userOrganization = user.organizations[0]?.organization;
     if (!userOrganization) {
-      return new Response(
-        JSON.stringify({ error: 'Organization not found for the user.' }),
-        { status: 404 }
-      );
+      return new Response(JSON.stringify({ error: 'Organization not found for the user.' }), { status: 404 });
     }
 
-    // 5. Create the Project and insert the owner as a member (role: "OWNER")
+    // 5. Process skillsRequired (Check existing or create new)
+    const processedSkills = await Promise.all(
+      skillsRequired.map(async (skillName) => {
+        let skill = await prisma.skill.findUnique({ where: { name: skillName } });
+        if (!skill) {
+          skill = await prisma.skill.create({ data: { name: skillName, isCustom: true } });
+        }
+        return { id: skill.id };
+      })
+    );
+
+    // 6. Process languages (Check existing or create new)
+    const processedLanguages = await Promise.all(
+      languages.map(async (langName) => {
+        let language = await prisma.programmingLanguage.findUnique({ where: { name: langName } });
+        if (!language) {
+          language = await prisma.programmingLanguage.create({ data: { name: langName } });
+        }
+        return { id: language.id };
+      })
+    );
+
+    // 7. Create the Project
     const project = await prisma.project.create({
       data: {
         title,
@@ -75,16 +83,21 @@ export async function POST(req) {
         email: userEmail,
         ownerId: user.id,
         organizationId: userOrganization.id,
-        skillsRequired,
-        languages,
         deadline: deadline ? new Date(deadline) : null,
         budget: budget ? parseFloat(budget) : null,
         certificateEligible,
         bannerImage: bannerImage || null,
-        githubRepo,  // Include the GitHub repository field here
+        githubRepo,
         createdAt: new Date(),
         updatedAt: new Date(),
-        // Insert the owner as a project member with role "OWNER"
+
+        // ✅ Connect existing or newly created skills
+        skillsRequired: { connect: processedSkills },
+
+        // ✅ Connect existing or newly created languages
+        languages: { connect: processedLanguages },
+
+        // Insert the owner as a project member
         members: {
           create: [
             {
@@ -95,13 +108,11 @@ export async function POST(req) {
           ],
         },
       },
-      include: {
-        members: true,
-      },
+      include: { members: true },
     });
 
-    // 6. Initialize a default Kanban board for the project
-    const board = await prisma.kanbanBoard.create({
+    // 8. Initialize a default Kanban board for the project
+    await prisma.kanbanBoard.create({
       data: {
         projectId: project.id,
         columns: {
@@ -114,15 +125,9 @@ export async function POST(req) {
       },
     });
 
-    return new Response(
-      JSON.stringify({ success: true, project, board }),
-      { status: 201 }
-    );
+    return new Response(JSON.stringify({ success: true, project }), { status: 201 });
   } catch (error) {
     console.error('Error creating project:', error);
-    return new Response(
-      JSON.stringify({ error: 'Internal Server Error' }),
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ error: 'Internal Server Error' }), { status: 500 });
   }
 }

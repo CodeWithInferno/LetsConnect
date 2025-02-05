@@ -10,7 +10,8 @@ const typeDefs = gql`
     title: String!
     description: String
     projectType: String
-    skillsRequired: [String!]
+    skillsRequired: [Skill!] # ✅ Add SkillsRequired field
+    languages: [ProgrammingLanguage!] # ✅ Add Programming Languages
     deadline: String
     budget: Float
     certificateEligible: Boolean
@@ -18,7 +19,6 @@ const typeDefs = gql`
     githubRepo: String
     # from your Prisma model:
     email: String
-    languages: [String!]
     organizationId: String
     createdAt: String
     updatedAt: String
@@ -40,6 +40,10 @@ const typeDefs = gql`
     status: String
   }
 
+  type ProgrammingLanguage {
+  id: ID!
+  name: String!
+}
   # -------------------------------
   # User type (with the fields you actually need)
   # -------------------------------

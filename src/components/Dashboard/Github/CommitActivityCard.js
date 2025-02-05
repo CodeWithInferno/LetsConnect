@@ -4,7 +4,7 @@ import { GitCommit, Clock } from 'lucide-react';
 
 const CommitActivityCard = ({ commits }) => {
   return (
-    <div className="bg-gray-900 text-white p-4 md:p-6 rounded-lg shadow-xl dark:bg-gray-800 max-w-2xl mx-auto">
+    <div className="bg-gray-900 text-white p-4 md:p-6 w-64 rounded-lg shadow-xl dark:bg-gray-800 max-w-2xl mx-auto">
       <div className="flex items-center mb-4">
         <GitCommit className="mr-2 text-blue-400" />
         <h2 className="text-lg md:text-xl font-bold">Recent Commits</h2>

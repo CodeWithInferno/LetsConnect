@@ -8,40 +8,55 @@ datasource db {
 }
 
 model User {
-  id                 String               @id @default(uuid())
-  name               String?
-  number             String?
-  profile_picture    String?
-  joined_at          DateTime             @default(now())
-  role               String?
-  interests          String?
-  qualifications     String?
-  rating             Int?
-  timezone           String?
-  phone_extension    String?
-  username           String               @unique
-  email              String               @unique
-  organizations      OrganizationMember[]
-  projects           Project[]            @relation("UserProjects")
-  projectMemberships ProjectMember[]
-  skills             UserSkill[]
-  ownedProjects      Project[]            @relation("ProjectOwner")
-  notifications      Notification[]
-  assignedKanbanTasks KanbanTask[]
-  
-  // New GitHub fields:
-  githubAccessToken  String?
-  githubRefreshToken String?   // <-- Make sure this is here!
-  githubUsername     String?
-  githubAvatar       String?
+  id                   String                    @id @default(uuid())
+  name                 String?
+  number               String?
+  profile_picture      String?
+  joined_at            DateTime                  @default(now())
+  role                 String?
+  interests            String?
+  qualifications       String?
+  rating               Int?
+  timezone             String?
+  phone_extension      String?
+  username             String                    @unique
+  email                String                    @unique
+  githubAccessToken    String?
+  githubAvatar         String?
+  githubUsername       String?
+  githubRefreshToken   String?
+  assignedKanbanTasks  KanbanTask[]
+  notifications        Notification[]
+  organizations        OrganizationMember[]
+  ownedProjects        Project[]                 @relation("ProjectOwner")
+  projectMemberships   ProjectMember[]
+  skills               UserSkill[]
+  projects             Project[]                 @relation("UserProjects")
+  programmingLanguages UserProgrammingLanguage[]
 }
 
+model UserProgrammingLanguage {
+  userId     String
+  languageId String
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  language   ProgrammingLanguage @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([userId, languageId])
+}
+
+model ProgrammingLanguage {
+  id       String                    @id @default(uuid())
+  name     String                    @unique
+  users    UserProgrammingLanguage[]
+  projects Project[]                 @relation("ProjectLanguages")
+}
 
 model Skill {
   id       String      @id @default(uuid())
   name     String      @unique
   isCustom Boolean     @default(false)
   users    UserSkill[]
+  projects Project[] // ✅ Many-to-Many, No need for @relation()
 }
 
 model UserSkill {
@@ -80,41 +95,92 @@ model OrganizationMember {
 }
 
 model Project {
-  id                  String          @id @default(uuid())
-  title               String
-  description         String
-  ownerId             String
-  skillsRequired      String[]
-  budget              Float?
-  deadline            DateTime
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
-  bannerImage         String?
-  certificateEligible Boolean         @default(false)
-  email               String
-  languages           String[]
-  organizationId      String?
-  githubRepo          String? 
-  projectType         String
-  organization        Organization?   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  owner               User            @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members             ProjectMember[]
-  projectMembers      User[]          @relation("UserProjects")
-  kanbanBoard KanbanBoard?
-  kanbanTasks KanbanTask[]
+  id             String          @id @default(uuid())
+  title          String
+  description    String
+  ownerId        String
+  budget         Float?
+  deadline       DateTime
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  email          String
+  organizationId String?
+  projectType    String
+  githubRepo     String?
+  kanbanBoard    KanbanBoard?
+  kanbanTasks    KanbanTask[]
+  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  owner          User            @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members        ProjectMember[]
+  projectMembers User[]          @relation("UserProjects")
+
+  // ✅ Many-to-Many relation with Programming Languages (Explicit Relation Name)
+  languages ProgrammingLanguage[] @relation("ProjectLanguages")
+  Skill     Skill?                @relation(fields: [skillId], references: [id])
+  skillId   String?
 }
 
 model ProjectMember {
-  id        String      @id @default(uuid())
   userId    String
   projectId String
+  joinedAt  DateTime         @default(now())
+  id        String           @id @default(uuid())
   role      ProjectRole
   status    MembershipStatus @default(PENDING)
-  joinedAt  DateTime    @default(now())
-  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, projectId], name: "userId_projectId")
+}
+
+model Notification {
+  id              String   @id @default(uuid())
+  userId          String
+  createdAt       DateTime @default(now())
+  read            Boolean  @default(false)
+  message         String
+  type            String?
+  projectId       String?
+  projectMemberId String?
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model KanbanBoard {
+  id        String         @id @default(uuid())
+  projectId String         @unique
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  project   Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  columns   KanbanColumn[]
+}
+
+model KanbanColumn {
+  id        String       @id @default(uuid())
+  title     String
+  color     String
+  order     Int
+  boardId   String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  board     KanbanBoard? @relation(fields: [boardId], references: [id])
+  tasks     KanbanTask[]
+}
+
+model KanbanTask {
+  id         String       @id @default(uuid())
+  content    String
+  priority   String
+  dueDate    DateTime?
+  tags       String[]
+  columnId   String
+  projectId  String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  assigneeId String?
+  position   Int
+  assignee   User?        @relation(fields: [assigneeId], references: [id])
+  column     KanbanColumn @relation(fields: [columnId], references: [id])
+  project    Project      @relation(fields: [projectId], references: [id])
 }
 
 enum MembershipStatus {
@@ -128,67 +194,3 @@ enum ProjectRole {
   ADMINISTRATOR
   MEMBER
 }
-
-
-model Notification {
-  id        String   @id @default(uuid())
-  message   String
-  createdAt DateTime @default(now())
-  read      Boolean  @default(false)
-  type      String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  projectId       String?  // link to the project
-  projectMemberId String?  // link to the ProjectMember row
-}
-
-
-
-
-
-
-
-
-model KanbanBoard {
-  id        String         @id @default(uuid())
-  project   Project        @relation(fields: [projectId], references: [id])
-  projectId String         @unique
-  columns   KanbanColumn[]
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-}
-
-model KanbanColumn {
-  id           String       @id @default(uuid())
-  title        String
-  color        String
-  order        Int
-  board        KanbanBoard? @relation(fields: [boardId], references: [id])
-  boardId      String?
-  tasks        KanbanTask[]
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-}
-
-model KanbanTask {
-  id           String       @id @default(uuid())
-  content      String
-  priority     String
-  dueDate      DateTime?
-  tags         String[]
-  position     Int          // This is the ordering field for tasks
-  column       KanbanColumn @relation(fields: [columnId], references: [id])
-  columnId     String
-  project      Project      @relation(fields: [projectId], references: [id])
-  projectId    String
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  assigneeId   String?
-  assignee     User?        @relation(fields: [assigneeId], references: [id])
-}
-
-
-
-
-
