@@ -15,42 +15,45 @@ export default function ExplorePage() {
     async function fetchProjects() {
       try {
         const query = `
-        query {
-          projects {
-            id
-            title
-            description
-            projectType
-            skillsRequired { name } # ✅ Fetch skills
-            languages { name } # ✅ Fetch programming languages
-            deadline
-            budget
-            certificateEligible
-            bannerImage
-            owner {
-              id
-              username
-              name
-              email
-              profile_picture
-            }
-            organization {
-              id
-              name
-              logo
-            }
-            members {
-              id
-              role
-              status
-              user {
-                id
-                username
-                name
-              }
-            }
-          }
-        }
+query {
+  projects {
+    id
+    title
+    description
+    projectType
+    skillsRequired { name }
+    languages { name }
+    deadline
+    budget
+    certificateEligible
+    bannerImage
+    owner {
+      id
+      username
+      name
+      email
+      profile_picture
+    }
+    organization {
+      id
+      name
+      logo
+    }
+    members {
+      id
+      role
+      status
+      user {
+        id
+        username
+        name
+        profile_picture
+      }
+    }
+  }
+}
+
+
       `;
       
   

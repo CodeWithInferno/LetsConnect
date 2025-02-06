@@ -10,7 +10,7 @@ const typeDefs = gql`
     title: String!
     description: String
     projectType: String
-    skillsRequired: [Skill!] # ✅ Add SkillsRequired field
+    skillsRequired: [Skill!]  # ✅ Add SkillsRequired field
     languages: [ProgrammingLanguage!] # ✅ Add Programming Languages
     deadline: String
     budget: Float
@@ -166,6 +166,7 @@ const typeDefs = gql`
     assignee: User
     createdAt: String!
     updatedAt: String!
+    lastModifiedByUser: User
   }
 
   extend type Query {

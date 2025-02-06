@@ -2,6 +2,8 @@
 
 import { Draggable, Droppable } from "react-beautiful-dnd";
 import { Clock, MoreHorizontal } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 const priorityConfig = {
   low: { color: "bg-emerald-500", text: "Low" },
@@ -70,6 +72,7 @@ export default function KanbanBoard({ columns }) {
                               </span>
                             ))}
                           </div>
+                          
 
                           {task.dueDate && (
                             <div className="flex items-center gap-1 text-xs text-gray-500">

@@ -75,41 +75,47 @@ export async function POST(req) {
     );
 
     // 7. Create the Project
-    const project = await prisma.project.create({
-      data: {
-        title,
-        description,
-        projectType,
-        email: userEmail,
-        ownerId: user.id,
-        organizationId: userOrganization.id,
-        deadline: deadline ? new Date(deadline) : null,
-        budget: budget ? parseFloat(budget) : null,
-        certificateEligible,
-        bannerImage: bannerImage || null,
-        githubRepo,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+// 7. Create the Project
+const project = await prisma.project.create({
+  data: {
+    title,
+    description,
+    projectType,
+    email: userEmail,
+    ownerId: user.id,
+    organizationId: userOrganization.id,
+    deadline: deadline ? new Date(deadline) : null,
+    budget: budget ? parseFloat(budget) : null,
+    certificateEligible,
+    bannerImage: bannerImage || null,
+    githubRepo,
+    createdAt: new Date(),
+    updatedAt: new Date(),
 
-        // ✅ Connect existing or newly created skills
-        skillsRequired: { connect: processedSkills },
+    // For explicit many-to-many (ProjectSkill) use nested create:
+    skillsRequired: {
+      create: processedSkills.map((skill) => ({
+        skill: { connect: { id: skill.id } },
+      })),
+    },
 
-        // ✅ Connect existing or newly created languages
-        languages: { connect: processedLanguages },
+    // For implicit many-to-many, connect is fine:
+    languages: { connect: processedLanguages },
 
-        // Insert the owner as a project member
-        members: {
-          create: [
-            {
-              user: { connect: { id: user.id } },
-              role: 'OWNER',
-              status: 'ACTIVE',
-            },
-          ],
+    // Insert the owner as a project member
+    members: {
+      create: [
+        {
+          user: { connect: { id: user.id } },
+          role: 'OWNER',
+          status: 'ACTIVE',
         },
-      },
-      include: { members: true },
-    });
+      ],
+    },
+  },
+  include: { members: true },
+});
+
 
     // 8. Initialize a default Kanban board for the project
     await prisma.kanbanBoard.create({
@@ -124,6 +130,7 @@ export async function POST(req) {
         },
       },
     });
+    
 
     return new Response(JSON.stringify({ success: true, project }), { status: 201 });
   } catch (error) {
