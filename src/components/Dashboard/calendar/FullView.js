@@ -1,48 +1,24 @@
 "use client";
+import React from "react";
 
-const events = [
-  { 
-    id: 1, 
-    title: 'Project Kickoff Meeting', 
-    date: '2024-03-25',
-    time: '2:00 PM - 3:30 PM',
-    participants: ['John D.', 'Sarah M.', 'Mike R.'],
-    location: 'Conference Room A'
-  },
-  { 
-    id: 2, 
-    title: 'Client Presentation Review', 
-    date: '2024-03-26',
-    time: '10:00 AM - 11:00 AM',
-    participants: ['Emily T.', 'David K.'],
-    location: 'Zoom Meeting'
-  },
-  { 
-    id: 3, 
-    title: 'Team Lunch', 
-    date: '2024-03-27',
-    time: '12:00 PM - 1:00 PM',
-    participants: ['All Team Members'],
-    location: 'Main Cafeteria'
-  },
-];
-
-const generateMonthMatrix = (currentDate) => {
+// Generate a matrix of weeks (rows) for a given month
+function generateMonthMatrix(currentDate) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const startOfMonth = new Date(year, month, 1);
   const endOfMonth = new Date(year, month + 1, 0);
   const startDayOfWeek = startOfMonth.getDay();
   const totalDays = endOfMonth.getDate();
+
   const matrix = [];
   let week = [];
 
-  // Fill initial empty cells if the month doesn't start on Sunday
+  // Fill empty cells before day 1
   for (let i = 0; i < startDayOfWeek; i++) {
     week.push(null);
   }
 
-  // Fill in the days of the month
+  // Fill actual days of the month
   for (let day = 1; day <= totalDays; day++) {
     week.push(new Date(year, month, day));
     if (week.length === 7) {
@@ -50,91 +26,184 @@ const generateMonthMatrix = (currentDate) => {
       week = [];
     }
   }
+
+  // Fill leftover cells in the last row
   if (week.length > 0) {
     while (week.length < 7) {
       week.push(null);
     }
     matrix.push(week);
   }
-  return matrix;
-};
 
-const FullView = ({ currentDate, selectedEvent, setSelectedEvent }) => (
-  <div className="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-transparent">
-    <div className="max-w-5xl mx-auto">
-      <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-white">
-        {currentDate.toLocaleDateString('en-GB', {
-          month: 'long',
-          year: 'numeric'
-        })}
-      </h2>
-      <div className="grid grid-cols-7 gap-0">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-          <div key={day} className="text-center font-medium py-2 border-b border-gray-300 dark:border-gray-600 dark:text-gray-300">
-            {day}
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 gap-0 mt-2">
-        {generateMonthMatrix(currentDate).flat().map((day, i) => {
-          if (day) {
-            const dayString = day.toISOString().split('T')[0];
-            const dayEvents = events.filter(event => event.date === dayString);
+  return matrix;
+}
+
+/**
+ * FullView
+ * 
+ * Displays a monthly grid, each cell showing that date's events.
+ * Clicking an event sets it as the selectedEvent (rendered below the calendar).
+ */
+export default function FullView({
+  currentDate,
+  selectedEvent,
+  setSelectedEvent,
+  events = [],
+}) {
+  // We'll create a monthly matrix of date cells
+  const monthMatrix = generateMonthMatrix(currentDate);
+
+  return (
+    <div className="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-transparent">
+      <div className="max-w-5xl mx-auto">
+        {/* Header: e.g. "February 2025" */}
+        <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-white">
+          {currentDate.toLocaleDateString("en-GB", {
+            month: "long",
+            year: "numeric",
+          })}
+        </h2>
+
+        {/* Days of week row */}
+        <div className="grid grid-cols-7 gap-0">
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+            <div
+              key={day}
+              className="text-center font-medium py-2 border-b border-gray-300 dark:border-gray-600 dark:text-gray-300"
+            >
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* The monthly grid (rows x columns) */}
+        <div className="grid grid-cols-7 gap-0 mt-2">
+          {monthMatrix.flat().map((day, i) => {
+            if (!day) {
+              // Empty cell (before month start or after month end)
+              return <div key={i} className="h-24 border dark:border-gray-600" />;
+            }
+
+            // Compare day to each event
+            const dayString = day.toISOString().split("T")[0];
+            // In FullView component, change the dayEvents filter to use local dates
+            const dayEvents = events.filter((evt) => {
+              if (!evt.startTime) return false;
+              const evtDate = new Date(evt.startTime);
+              return (
+                evtDate.getFullYear() === day.getFullYear() &&
+                evtDate.getMonth() === day.getMonth() &&
+                evtDate.getDate() === day.getDate()
+              );
+            });
+
+            // Check if this cell is "today"
+// In FullView's grid cell rendering, update the isToday check
+          const today = new Date();
+          const isToday =
+            day.getDate() === today.getDate() &&
+            day.getMonth() === today.getMonth() &&
+            day.getFullYear() === today.getFullYear();
+
+            // Check if this cell matches currentDate
+            const isSelected =
+              day.getDate() === currentDate.getDate() &&
+              day.getMonth() === currentDate.getMonth() &&
+              day.getFullYear() === currentDate.getFullYear();
+
             return (
-              <div 
-                key={i} 
-                className={`h-24 border p-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800
-                  ${day.getDate() === currentDate.getDate() 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-200'}
-                  dark:border-gray-600
+              <div
+                key={i}
+                className={`h-28 border p-2 dark:border-gray-600
+                  ${isSelected ? "bg-blue-500 text-white" : "bg-white dark:bg-gray-900 dark:text-gray-200"}
+                  ${isToday && !isSelected ? "border-2 border-blue-400" : ""}
                 `}
-                onClick={() => setSelectedEvent(dayEvents[0] || null)}
               >
-                <div className="text-sm font-semibold">
-                  {day.toLocaleDateString('en-GB', { day: 'numeric' })}
+                {/* The day number */}
+                <div className="text-sm font-semibold mb-1">
+                  {day.getDate()}
                 </div>
-                {dayEvents.length > 0 && (
-                  <div className="mt-1">
-                    <span className="text-xs bg-gray-400 text-white px-1 rounded dark:bg-gray-700">
-                      {dayEvents.length} event{dayEvents.length > 1 ? 's' : ''}
-                    </span>
+
+                {/* List the event titles (limit to 3 to avoid overflow) */}
+                {dayEvents.slice(0, 3).map((evt) => (
+                  <div
+                    key={evt.id}
+                    className="text-xs mb-1 bg-blue-100 dark:bg-blue-800 text-blue-900 dark:text-blue-100 rounded px-1 py-0.5 cursor-pointer truncate"
+                    onClick={() => setSelectedEvent(evt)}
+                  >
+                    {evt.title}
+                  </div>
+                ))}
+
+                {/* If there's more than 3, show a small label */}
+                {dayEvents.length > 3 && (
+                  <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                    + {dayEvents.length - 3} more...
                   </div>
                 )}
               </div>
             );
-          } else {
-            return <div key={i} className="h-24 border dark:border-gray-600" />;
-          }
-        })}
-      </div>
-      {selectedEvent && (
-        <div className="mt-6 border-t pt-4 border-gray-300 dark:border-gray-600">
-          <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">{selectedEvent.title}</h3>
-          <div className="space-y-2">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Time</p>
-              <p className="font-medium text-gray-800 dark:text-gray-200">{selectedEvent.time}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Location</p>
-              <p className="font-medium text-gray-800 dark:text-gray-200">{selectedEvent.location}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Participants</p>
-              <div className="flex flex-wrap gap-2 mt-1">
-                {selectedEvent.participants.map((participant, i) => (
-                  <span key={i} className="px-3 py-1 bg-blue-400 text-white rounded-full text-sm">
-                    {participant}
-                  </span>
-                ))}
+          })}
+        </div>
+
+        {/* If user has clicked an event, show its details below */}
+        {selectedEvent && (
+          <div className="mt-6 border-t pt-4 border-gray-300 dark:border-gray-600">
+            <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">
+              {selectedEvent.title}
+            </h3>
+            <div className="space-y-2">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Time
+                </p>
+                <p className="font-medium text-gray-800 dark:text-gray-200">
+                  {new Date(selectedEvent.startTime).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}{" "}
+                  -{" "}
+                  {new Date(selectedEvent.endTime).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Location
+                </p>
+                <p className="font-medium text-gray-800 dark:text-gray-200">
+                  {selectedEvent.location || "N/A"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Assigned To
+                </p>
+                <p className="font-medium text-gray-800 dark:text-gray-200">
+                  {selectedEvent.assignedTo
+                    ? selectedEvent.assignedTo.name
+                    : "Nobody"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Organizer
+                </p>
+                <p className="font-medium text-gray-800 dark:text-gray-200">
+                  {selectedEvent.organizer
+                    ? selectedEvent.organizer.name
+                    : "Unknown"}
+                </p>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
-  </div>
-);
-
-export default FullView;
+  );
+}

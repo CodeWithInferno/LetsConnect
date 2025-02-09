@@ -1,9 +1,14 @@
 "use client";
+import { useEffect } from "react";
 
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { cn } from "@/lib/utils";
 
 export default function KanbanBoard({ columns, onTaskDragEnd }) {
+  useEffect(() => {
+    console.log("Updated columns data:", columns);
+  }, [columns]);
+
   return (
     <DragDropContext onDragEnd={onTaskDragEnd}>
       <div className="flex gap-4 overflow-x-auto pb-4">
@@ -56,6 +61,32 @@ export default function KanbanBoard({ columns, onTaskDragEnd }) {
                           <p className="text-gray-900 dark:text-gray-100 text-sm">
                             {task.content}
                           </p>
+                          {task.lastModifiedByUser && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <Avatar className="w-6 h-6">
+                                <AvatarImage
+                                  src={
+                                    task.lastModifiedByUser.profile_picture ||
+                                    "/default-avatar.png"
+                                  }
+                                  alt={
+                                    task.lastModifiedByUser.name ||
+                                    "Unknown User"
+                                  }
+                                />
+                                <AvatarFallback>
+                                  {task.lastModifiedByUser.name
+                                    ? task.lastModifiedByUser.name.charAt(0)
+                                    : "?"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs text-gray-500">
+                                {task.lastModifiedByUser.name || "Unknown"}{" "}
+                                (last modified)
+                              </span>
+                            </div>
+                          )}
+
                           {task.tags && task.tags.length > 0 && (
                             <div className="flex flex-wrap gap-2 mt-2">
                               {task.tags.map((tag, tagIndex) => (

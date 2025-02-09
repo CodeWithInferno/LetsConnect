@@ -34,6 +34,11 @@ model User {
   skills               UserSkill[]
   projects             Project[]                 @relation("UserProjects")
   programmingLanguages UserProgrammingLanguage[]
+    // NEW FIELDS:
+  organizedCalendarEvents CalendarEvent[]         @relation("OrganizerCalendarEvents")
+  calendarEventParticipants CalendarEventParticipant[] @relation("CalendarEventParticipants")
+  assignedCalendarEvents  CalendarEvent[]         @relation("AssignedCalendarEvents")
+
 }
 
 model UserProgrammingLanguage {
@@ -121,6 +126,8 @@ model Project {
   languages      ProgrammingLanguage[] @relation("ProjectLanguages")
   skillsRequired ProjectSkill[]
   certificateEligible  Boolean?                 @default(false)  // <-- Added field
+  calendarEvents CalendarEvent[] @relation("ProjectCalendarEvents")
+
 
 }
 
@@ -200,8 +207,6 @@ model KanbanTask {
   lastModifiedBy    String?  // This is just the foreign key scalar field
 }
 
-
-
 model CalendarEvent {
   id                    String                       @id @default(uuid())
   title                 String
@@ -216,19 +221,21 @@ model CalendarEvent {
   createdAt             DateTime                     @default(now())
   updatedAt             DateTime                     @updatedAt
 
-  organizer             User                         @relation(fields: [organizerId], references: [id], onDelete: Cascade)
-  project               Project?                     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  organizer             User                         @relation("OrganizerCalendarEvents", fields: [organizerId], references: [id], onDelete: Cascade)
+  project               Project?                     @relation("ProjectCalendarEvents", fields: [projectId], references: [id], onDelete: Cascade)
   participants          CalendarEventParticipant[]
-
+  assignedToId   String?
+  assignedTo     User? @relation("AssignedCalendarEvents", fields: [assignedToId], references: [id], onDelete: SetNull)
+  priority   String?   // e.g. "High", "Medium", "Low"
+  deadline   DateTime?
   @@index([organizerId])
   @@index([projectId])
 }
-
 model CalendarEventParticipant {
   eventId   String
   userId    String
   event     CalendarEvent   @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User            @relation("CalendarEventParticipants", fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([eventId, userId])
 }

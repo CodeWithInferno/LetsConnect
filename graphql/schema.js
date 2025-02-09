@@ -10,7 +10,7 @@ const typeDefs = gql`
     title: String!
     description: String
     projectType: String
-    skillsRequired: [Skill!]  # ✅ Add SkillsRequired field
+    skillsRequired: [Skill!] # ✅ Add SkillsRequired field
     languages: [ProgrammingLanguage!] # ✅ Add Programming Languages
     deadline: String
     budget: Float
@@ -41,9 +41,9 @@ const typeDefs = gql`
   }
 
   type ProgrammingLanguage {
-  id: ID!
-  name: String!
-}
+    id: ID!
+    name: String!
+  }
   # -------------------------------
   # User type (with the fields you actually need)
   # -------------------------------
@@ -64,13 +64,13 @@ const typeDefs = gql`
     githubUsername: String
     githubAvatar: String
   }
-    type UserSkill {
+  type UserSkill {
     skill: Skill!
   }
-    type Skill {
-      id: ID!
-      name: String!
-    }
+  type Skill {
+    id: ID!
+    name: String!
+  }
 
   # -------------------------------
   # Organization type
@@ -225,15 +225,75 @@ const typeDefs = gql`
   extend type Mutation {
     updateProfile(input: UpdateProfileInput!): User!
   }
+
+  # -------------------------------
+  # Calendar Event Types
+  # -------------------------------
+  type CalendarEvent {
+    id: ID!
+    title: String!
+    description: String
+    startTime: String! # ISO date string
+    endTime: String! # ISO date string
+    location: String
+    recurrence: String
+    reminderMinutesBefore: Int
+    createdAt: String!
+    updatedAt: String!
+    priority: String # <-- Add this field
+    deadline: String
+    # Relationships
+    organizer: User!
+    project: Project
+    assignedTo: User
+    participants: [CalendarEventParticipant!]!
+  }
+
+  type CalendarEventParticipant {
+    event: CalendarEvent!
+    user: User!
+  }
+
+  # -------------------------------
+  # Extend Queries
+  # -------------------------------
+  extend type Query {
+    calendarEvents(projectId: ID!): [CalendarEvent!]!
+    calendarEvent(eventId: ID!): CalendarEvent
+  }
+
+  # -------------------------------
+  # Extend Mutations
+  # -------------------------------
+  extend type Mutation {
+    createCalendarEvent(
+      title: String!
+      description: String
+      startTime: String!
+      endTime: String!
+      location: String
+      recurrence: String
+      reminderMinutesBefore: Int
+      priority: String # <-- New argument
+      deadline: String
+      projectId: ID
+      assignedTo: ID
+    ): CalendarEvent!
+
+    updateCalendarEvent(
+      eventId: ID!
+      title: String
+      description: String
+      startTime: String
+      endTime: String
+      location: String
+      recurrence: String
+      reminderMinutesBefore: Int
+      assignedTo: ID
+    ): CalendarEvent!
+
+    deleteCalendarEvent(eventId: ID!): CalendarEvent!
+  }
 `;
 
 module.exports = typeDefs;
-
-
-
-
-
-
-
-
-

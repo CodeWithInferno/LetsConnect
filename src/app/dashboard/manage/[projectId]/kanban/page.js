@@ -154,6 +154,7 @@ export default function KanbanPage() {
             priority: task.priority,
             dueDate: task.dueDate,
             tags: task.tags,
+            lastModifiedByUser: task.lastModifiedByUser || null,  // ✅ Include it
           })),
         };
         return acc;

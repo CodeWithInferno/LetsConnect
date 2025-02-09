@@ -20,19 +20,27 @@ export function EditableField({ label, value, onSave }) {
     <div className="flex items-center justify-between border-b border-gray-300 dark:border-gray-700 pb-2">
       <div>
         <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+
         {isEditing ? (
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-700 rounded-md 
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 
+                       bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         ) : (
-          <p className="text-lg font-semibold text-gray-900 dark:text-white">
+          // Add double-click to switch to editing
+          <p
+            onDoubleClick={() => setIsEditing(true)}
+            className="text-lg font-semibold text-gray-900 dark:text-white cursor-pointer"
+          >
             {value}
           </p>
         )}
       </div>
+
       {isEditing ? (
         <div className="flex items-center gap-2">
           <button onClick={handleSave} className="text-green-600">
@@ -43,7 +51,11 @@ export function EditableField({ label, value, onSave }) {
           </button>
         </div>
       ) : (
-        <button onClick={() => setIsEditing(true)} className="text-gray-500 hover:text-gray-800">
+        // Pencil icon to trigger editing
+        <button
+          onClick={() => setIsEditing(true)}
+          className="text-gray-500 hover:text-gray-800"
+        >
           <Pencil className="w-5 h-5" />
         </button>
       )}
@@ -51,16 +63,16 @@ export function EditableField({ label, value, onSave }) {
   );
 }
 
+// ProjectSettingsPage.jsx
+
 export default function ProjectSettingsPage() {
   const { projectId } = useParams();
   const { user, error: userError, isLoading: userLoading } = useUser();
-  const currentUser = user;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [project, setProject] = useState(null);
 
-  // Fetch project details from GraphQL API
   useEffect(() => {
     async function fetchProjectDetails() {
       setLoading(true);
@@ -93,15 +105,11 @@ export default function ProjectSettingsPage() {
             }
           }
         `;
-
         const response = await fetch("/api/graphql", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({
-            query,
-            variables: { projectId },
-          }),
+          body: JSON.stringify({ query, variables: { projectId } }),
         });
 
         const { data, errors } = await response.json();
@@ -128,18 +136,9 @@ export default function ProjectSettingsPage() {
         setLoading(false);
       }
     }
-
-    if (projectId) {
-      fetchProjectDetails();
-    }
+    if (projectId) fetchProjectDetails();
   }, [projectId]);
 
-  // Determine if the current user is the project owner.
-  // Note: In Auth0 the user ID is stored in the 'sub' field.
-  const isOwner =
-    currentUser && project?.owner && currentUser.sub === project.owner.id;
-
-  // Show loading spinner if the project or user is loading
   if (loading || userLoading) {
     return (
       <Layout>
@@ -150,7 +149,6 @@ export default function ProjectSettingsPage() {
     );
   }
 
-  // Show error message if there's an error with project or user
   if (error || userError) {
     return (
       <Layout>
@@ -161,7 +159,6 @@ export default function ProjectSettingsPage() {
     );
   }
 
-  // If no project is found
   if (!project) {
     return (
       <Layout>
@@ -170,6 +167,11 @@ export default function ProjectSettingsPage() {
         </div>
       </Layout>
     );
+  }
+
+  // Helper to update local project state
+  function handleFieldUpdate(field, newValue) {
+    setProject((prev) => ({ ...prev, [field]: newValue }));
   }
 
   return (
@@ -204,65 +206,25 @@ export default function ProjectSettingsPage() {
               Project Information
             </h2>
 
-            {isOwner ? (
-              <EditableField
-                label="Project Title"
-                value={project.title}
-                onSave={(newValue) =>
-                  setProject((prev) => ({ ...prev, title: newValue }))
-                }
-              />
-            ) : (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-white">
-                  Project Title
-                </label>
-                <p className="mt-1 text-gray-900 dark:text-white">
-                  {project.title}
-                </p>
-              </div>
-            )}
+            <EditableField
+              label="Project Title"
+              value={project.title}
+              onSave={(newValue) => handleFieldUpdate("title", newValue)}
+            />
 
-            {isOwner ? (
-              <EditableField
-                label="Description"
-                value={project.description}
-                onSave={(newValue) =>
-                  setProject((prev) => ({ ...prev, description: newValue }))
-                }
-              />
-            ) : (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-white">
-                  Description
-                </label>
-                <p className="mt-1 text-gray-900 dark:text-white">
-                  {project.description}
-                </p>
-              </div>
-            )}
+            <EditableField
+              label="Description"
+              value={project.description}
+              onSave={(newValue) => handleFieldUpdate("description", newValue)}
+            />
 
-            {isOwner ? (
-              <EditableField
-                label="Budget"
-                value={`$${project.budget}`}
-                onSave={(newValue) =>
-                  setProject((prev) => ({
-                    ...prev,
-                    budget: newValue.replace("$", ""),
-                  }))
-                }
-              />
-            ) : (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-white">
-                  Budget
-                </label>
-                <p className="mt-1 text-gray-900 dark:text-white">
-                  ${project.budget}
-                </p>
-              </div>
-            )}
+            <EditableField
+              label="Budget"
+              value={`$${project.budget}`}
+              onSave={(newValue) =>
+                handleFieldUpdate("budget", newValue.replace("$", ""))
+              }
+            />
           </div>
 
           {/* Right Column - Owner Info */}
@@ -276,27 +238,16 @@ export default function ProjectSettingsPage() {
                 alt="Owner"
                 className="w-16 h-16 rounded-full border"
               />
-              {isOwner ? (
-                <EditableField
-                  label="Owner Name"
-                  value={project.owner.name}
-                  onSave={(newValue) =>
-                    setProject((prev) => ({
-                      ...prev,
-                      owner: { ...prev.owner, name: newValue },
-                    }))
-                  }
-                />
-              ) : (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-white">
-                    Owner Name
-                  </label>
-                  <p className="mt-1 text-gray-900 dark:text-white">
-                    {project.owner.name}
-                  </p>
-                </div>
-              )}
+              <EditableField
+                label="Owner Name"
+                value={project.owner.name}
+                onSave={(newValue) =>
+                  setProject((prev) => ({
+                    ...prev,
+                    owner: { ...prev.owner, name: newValue },
+                  }))
+                }
+              />
             </div>
           </div>
         </div>
@@ -327,7 +278,7 @@ export default function ProjectSettingsPage() {
                     {member.email}
                   </p>
                 </div>
-                {isOwner ? (
+                <div className="w-32">
                   <EditableField
                     label="Role"
                     value={member.role}
@@ -340,11 +291,7 @@ export default function ProjectSettingsPage() {
                       }))
                     }
                   />
-                ) : (
-                  <p className="text-gray-700 dark:text-gray-300">
-                    {member.role}
-                  </p>
-                )}
+                </div>
               </div>
             ))}
           </div>

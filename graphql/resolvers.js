@@ -204,7 +204,7 @@ const resolvers = {
             orderBy: { order: "asc" },
             include: {
               tasks: {
-                include: { assignee: true },
+                include: { assignee: true, lastModifiedByUser: true, },
                 orderBy: { position: "asc" },
               },
             },
@@ -309,29 +309,38 @@ const resolvers = {
     },
 
     acceptMembership: async (_, { projectMemberId }, { prisma, user }) => {
-      // Find the membership
+      // 1) Find the membership, including the project so we know the ownerId
       const pm = await prisma.projectMember.findUnique({
         where: { id: projectMemberId },
-        include: { user: true },
+        include: {
+          user: true,
+          project: true, // so we can check who owns the project
+        },
       });
       if (!pm) {
         throw new Error("Membership not found");
       }
-
-      // Must be the same user
-      if (pm.userId !== user.id) {
+    
+      // 2) Check if the currently logged-in user is:
+      //    a) the user themself, or b) the project owner
+      const isInvitedUser = pm.userId === user.id;
+      const isProjectOwner = pm.project?.ownerId === user.id;
+    
+      if (!isInvitedUser && !isProjectOwner) {
         throw new Error("Not allowed to accept this membership.");
       }
-
-      // Update status to ACTIVE
+    
+      // 3) Update status to ACTIVE
       const updated = await prisma.projectMember.update({
         where: { id: pm.id },
         data: { status: "ACTIVE" },
         include: { user: true },
       });
-
+    
       return updated;
     },
+    
+    
 
     markNotificationAsRead: async (_, { notificationId }, { prisma, user }) => {
       if (!user) throw new Error("Not logged in");
@@ -350,28 +359,36 @@ const resolvers = {
     },
 
     rejectMembership: async (_, { projectMemberId }, { prisma, user }) => {
-      // Find the membership
+      // 1) Find the membership
       const pm = await prisma.projectMember.findUnique({
         where: { id: projectMemberId },
-        include: { user: true },
+        include: {
+          user: true,
+          project: true, 
+        },
       });
       if (!pm) throw new Error("Membership not found");
-
-      // Must be the same user
-      if (pm.userId !== user.id)
+    
+      // 2) Either the invited user OR the project owner can reject
+      const isInvitedUser = pm.userId === user.id;
+      const isProjectOwner = pm.project?.ownerId === user.id;
+    
+      if (!isInvitedUser && !isProjectOwner) {
         throw new Error("Not allowed to reject this membership.");
-
-      // Delete the membership
+      }
+    
+      // 3) If allowed, remove the membership
       await prisma.projectMember.delete({ where: { id: projectMemberId } });
-
+    
       // Optionally mark the corresponding notification as read
       await prisma.notification.updateMany({
-        where: { projectMemberId, userId: user.id },
+        where: { projectMemberId, userId: pm.userId },
         data: { read: true },
       });
-
+    
       return { success: true };
     },
+    
 
     applyToProject: async (_, { projectId }, { prisma, user }) => {
       if (!user) throw new Error("Not logged in");
@@ -429,10 +446,11 @@ const resolvers = {
           lastModifiedBy: user.id,  // Record the user making the change
         },
         include: {
+          lastModifiedByUser: true,
           assignee: true,
           column: true,
           project: true,
-          lastModifiedByUser: true,  // Include relation so it’s returned
+            // Include relation so it’s returned
         },
       });
     

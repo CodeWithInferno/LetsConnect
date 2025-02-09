@@ -2,7 +2,15 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { Moon, Sun, Plus, ArrowRight, Loader2, Bell, Settings } from "lucide-react";
+import {
+  Moon,
+  Sun,
+  Plus,
+  ArrowRight,
+  Loader2,
+  Bell,
+  Settings,
+} from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -141,10 +149,19 @@ export default function DashboardPage() {
             Your Dashboard
           </h1>
           <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" onClick={toggleTheme} className="rounded-full">
-              {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleTheme}
+              className="rounded-full"
+            >
+              {theme === "light" ? (
+                <Moon className="h-5 w-5" />
+              ) : (
+                <Sun className="h-5 w-5" />
+              )}
             </Button>
-            <Button variant="outline" size="icon" className="rounded-full">
+            <Button variant="outline" onClick={() => router.push("/settings")} size="icon" className="rounded-full">
               <Settings className="h-5 w-5" />
             </Button>
             <Button variant="outline" size="icon" className="rounded-full">
@@ -178,34 +195,58 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         ) : projects.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {projects.map((proj) => (
-              <Card key={proj.id} className="group hover:shadow-lg transition-all duration-200 dark:bg-gray-800">
-                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                  <h3 className="font-semibold text-xl text-gray-900 dark:text-white">
-                    {proj.title}
-                  </h3>
-                  <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
-                    Active
-                  </Badge>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2">
-                    {proj.description || "No description provided"}
-                  </p>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    onClick={() => router.push(`/dashboard/manage/${proj.id}`)}
-                  >
-                    <span>View Project</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+          <div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {projects.map((proj) => (
+                <Card
+                  key={proj.id}
+                  className="group hover:shadow-lg transition-all duration-200 dark:bg-gray-800"
+                >
+                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                    <h3 className="font-semibold text-xl text-gray-900 dark:text-white">
+                      {proj.title}
+                    </h3>
+                    <Badge
+                      variant="secondary"
+                      className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
+                    >
+                      Active
+                    </Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2">
+                      {proj.description || "No description provided"}
+                    </p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      onClick={() =>
+                        router.push(`/dashboard/manage/${proj.id}`)
+                      }
+                    >
+                      <span>View Project</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+
+            {/* Separator */}
+            <div className="flex flex-col items-center justify-center mt-8">
+              <hr className="w-full border-gray-300 dark:border-gray-700 mb-4" />
+              <p>Or you can also</p>
+              <Button
+                variant="link"
+                onClick={() => router.push("/explore")}
+                className="text-blue-600 dark:text-blue-400"
+              >
+                Browse Projects
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        )  : isContributor ? (
+        ) : isContributor ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">
               <div className="rounded-full bg-blue-100 dark:bg-blue-900 p-3 mb-4">
@@ -229,13 +270,16 @@ export default function DashboardPage() {
               <div className="rounded-full bg-blue-100 dark:bg-blue-900 p-3 mb-4">
                 <Plus className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">No projects found</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                No projects found
+              </p>
               <Button
                 variant="link"
                 onClick={() => router.push("/projects/new")}
                 className="text-blue-600 dark:text-blue-400"
               >
-                Create your first project <ArrowRight className="ml-2 h-4 w-4" />
+                Create your first project{" "}
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </CardContent>
           </Card>

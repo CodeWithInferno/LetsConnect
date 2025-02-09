@@ -17,7 +17,6 @@ export default function Sidebar({ isOpen, isMobile, toggle }) {
   const menuItems = [
     { icon: Home, label: "Dashboard", path: isProjectDashboard ? `/dashboard/manage/${projectId}` : "/dashboard" },
     { icon: Users, label: "Team", path: isProjectDashboard ? `/dashboard/manage/${projectId}/teams` : "/teams" },
-    { icon: FileText, label: "Projects", path: "/projects" },
     { icon: Calendar, label: "Calendar", path: isProjectDashboard ? `/dashboard/manage/${projectId}/calendar` : "/calendar" },
     { icon: Github, label: "Github", path: isProjectDashboard ? `/dashboard/manage/${projectId}/github` : "/github" },
 
