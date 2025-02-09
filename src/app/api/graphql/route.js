@@ -72,10 +72,10 @@ import { ApolloServer } from "@apollo/server";
 import { startServerAndCreateNextHandler } from "@as-integrations/next";
 import { mergeResolvers } from "@graphql-tools/merge";
 import { getSession } from "@auth0/nextjs-auth0";
-import typeDefs from "/Users/pratham/Programming/Startup/letsconnect/graphql/schema.js";
-import mainResolvers from "/Users/pratham/Programming/Startup/letsconnect/graphql/resolvers.js";
-import userResolvers from "/Users/pratham/Programming/Startup/letsconnect/graphql/userResolvers.js";
-import calendarResolvers from "/Users/pratham/Programming/Startup/letsconnect/graphql/CalendarResolver.js";
+import typeDefs from "../../../../graphql/schema";
+import mainResolvers from "../../../../graphql/resolvers";
+import userResolvers from "../../../../graphql/userResolvers";
+import calendarResolvers from "../../../../graphql/CalendarResolver";
 import prisma from "../../../lib/prisma";
 
 // Merge resolvers
