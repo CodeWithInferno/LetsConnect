@@ -1,6 +1,6 @@
 // File: /pages/api/user/role.js (Pages Router) OR /app/api/user/role/route.js (App Router)
 import { withApiAuthRequired, getSession } from "@auth0/nextjs-auth0";
-import { prisma } from "@/lib/prisma"; // or wherever your Prisma client is imported
+import  prisma  from "@/lib/prisma"; // or wherever your Prisma client is imported
 
 export default withApiAuthRequired(async function roleHandler(req, res) {
   try {
