@@ -1,51 +1,64 @@
 import React from 'react';
 import { Globe } from "@/components/ui/globe";
-import Image from "next/image"; // Ensure you're using Next.js
+import Image from "next/image";
+import { motion } from "framer-motion";
 
-// Default Glassmorphic Card Component
-const GlassmorphicCard = () => {
+const FeatureCard = ({ icon, title, description }) => {
   return (
-    <div className="group relative flex flex-col justify-between overflow-hidden rounded-xl bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.03),0_2px_4px_rgba(0,0,0,0.05),0_12px_24px_rgba(0,0,0,0.05)] dark:bg-[#0f0f0f] dark:border dark:border-[rgba(255,255,255,0.1)] dark:shadow-[0_-20px_80px_-20px_#ffffff1f_inset] p-6">
-      {/* Card Icon */}
-      <svg
-        width="15"
-        height="15"
-        viewBox="0 0 15 15"
-        fill="none"
-        className="h-12 w-12 mb-1 origin-left transform transition-all duration-300 ease-in-out group-hover:scale-75 group-hover:text-[var(--color-one)] text-neutral-700"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M7.5 0C7.77614 0 8 0.223858 8 0.5V1.80687C10.6922 2.0935 12.8167 4.28012 13.0068 7H14.5C14.7761 7 15 7.22386 15 7.5C15 7.77614 14.7761 8 14.5 8H12.9888C12.7094 10.6244 10.6244 12.7094 8 12.9888V14.5C8 14.7761 7.77614 15 7.5 15C7.22386 15 7 14.7761 7 14.5V13.0068C4.28012 12.8167 2.0935 10.6922 1.80687 8H0.5C0.223858 8 0 7.77614 0 7.5C0 7.22386 0.223858 7 0.5 7H1.78886C1.98376 4.21166 4.21166 1.98376 7 1.78886V0.5C7 0.223858 7.22386 0 7.5 0Z" />
-      </svg>
-      {/* Card Content */}
-      <h3 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
-        Card Title
-      </h3>
-      <p className="max-w-lg text-neutral-500 dark:text-neutral-400">
-        Card description placeholder text.
-      </p>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      className="relative group flex flex-col justify-between overflow-hidden rounded-xl bg-[#161616] hover:bg-[#1c1c1c] p-6 sm:p-8 transition-all duration-300 min-h-[320px] hover:scale-[1.02] w-full"
+    >
+      {/* Calendar Background */}
+      <Image
+        src="/Calendar.png"
+        alt="Background"
+        layout="fill"
+        objectFit="cover"
+        className="absolute inset-0 w-full h-full opacity-10 group-hover:opacity-20 transition-opacity duration-300"
+      />
+      
+      <div className="relative z-10">
+        <div className="mb-4 h-12 w-12 text-gray-400 group-hover:text-gray-300 transition-colors transform group-hover:rotate-6 duration-300">
+          {icon}
+        </div>
+      </div>
+      
+      <div className="relative z-10 mt-auto">
+        <h3 className="text-xl sm:text-2xl text-gray-100 font-medium mb-2 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">{title}</h3>
+        <p className="text-gray-400 text-sm sm:text-base group-hover:text-gray-300 transition-colors">
+          {description}
+        </p>
+      </div>
+      
+      <div className="absolute inset-0 rounded-xl border border-gray-800 group-hover:border-gray-700 transition-colors duration-300" />
+    </motion.div>
   );
 };
 
-// Enhanced Globe Card Component with text aligned bottom-left
 const GlobeCard = () => {
   return (
-    <div className="group relative col-span-2 row-span-2 flex flex-col justify-between overflow-hidden rounded-xl bg-[#090909] shadow-lg dark:bg-[#0f0f0f] dark:border dark:border-[rgba(255,255,255,0.1)] p-8 min-h-[400px]">
-      
-      {/* Globe Background */}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+      className="group relative col-span-1 md:col-span-2 flex flex-col justify-between overflow-hidden rounded-xl bg-[#090909] shadow-lg dark:bg-[#0f0f0f] dark:border dark:border-[rgba(255,255,255,0.1)] p-8 lg:p-10 min-h-[400px] hover:scale-[1.01] transition-transform duration-300 w-full"
+    >
       <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
         <div className="pointer-events-none absolute inset-0 h-full bg-[radial-gradient(circle_at_50%_200%,rgba(0,0,0,0.2),rgba(255,255,255,0))]" />
         <Globe 
-          className="absolute -top-32 right-[-20%] w-[140%] h-[140%] opacity-60 transition-opacity duration-300 dark:opacity-40" 
+          className="absolute -top-32 right-[-20%] w-[140%] h-[140%] opacity-60 transition-opacity duration-300 dark:opacity-40 group-hover:opacity-80" 
         />
       </div>
 
-      {/* Content - Moved to Bottom Left */}
       <div className="relative z-10 flex flex-col gap-4 mt-auto">
         <div className="flex items-center gap-3">
           <svg
-            className="w-10 h-10 text-purple-400 group-hover:scale-95 transition-transform duration-300"
+            className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 group-hover:scale-95 transition-transform duration-300"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -57,66 +70,95 @@ const GlobeCard = () => {
               d="M4.5 12a7.5 7.5 0 0115 0m-15 0a7.5 7.5 0 1015 0M4.5 12a7.5 7.5 0 0115 0m-15 0a7.5 7.5 0 1015 0"
             />
           </svg>
-          <h3 className="text-2xl font-semibold text-white">
+          <h3 className="text-2xl sm:text-3xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300">
             Production Observability
           </h3>
         </div>
-        <p className="text-gray-400 text-lg max-w-[80%]">
-          Collect production application data (errors, performance) and see it in your IDE.
+        <p className="text-gray-400 text-lg sm:text-xl max-w-[90%] sm:max-w-[80%] leading-relaxed">
+          Collect production data (errors, performance) and see it in your IDE for real-time insights.
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
-// Calendar Card Component with Glassmorphic Effect
-const CalendarCard = () => {
-  return (
-    <div className="group relative flex flex-col justify-between overflow-hidden rounded-xl bg-[rgba(255,255,255,0.1)] backdrop-blur-lg shadow-lg border border-[rgba(255,255,255,0.2)] dark:border-[rgba(255,255,255,0.1)] p-6 min-h-[350px]">
-      {/* Background Image */}
-      <Image
-        src="/Calendar.png"
-        alt="Calendar Component"
-        layout="fill"
-        objectFit="cover"
-        className="absolute inset-0 w-full h-full opacity-20 group-hover:opacity-40 transition-opacity duration-300"
-      />
-      
-      {/* Content */}
-      <div className="relative z-10 flex flex-col gap-4">
-        <h3 className="text-2xl font-semibold text-white">Seamless Scheduling</h3>
-        <p className="text-gray-300 text-lg">
-          Stay organized with intuitive calendar integration for effortless project planning.
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// CardGrid Component with correct layout
 const CardGrid = () => {
   return (
-    <div className="relative flex min-w-full max-w-screen-xl flex-col gap-8 px-6 py-28 bg-gradient-to-b from-[#151515] to-[#090909]">
-      {/* Header */}
-      <div className="relative z-10 mx-auto max-w-5xl text-center flex flex-col lg:flex-row items-center lg:items-end gap-3">
-        <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-          What's in Million?
-        </h2>
-        <p className="text-xl leading-8 text-gray-400">
-          Everything you need to optimize your React website.
-        </p>
-      </div>
-      
-      {/* Grid of Cards */}
-      <div className="relative z-10 grid w-full grid-cols-3 gap-6 mt-5">
-        <GlassmorphicCard />
-        <GlassmorphicCard />
-        <CalendarCard /> {/* New Calendar Card */}
-        <GlobeCard />
-        <GlassmorphicCard />
+    <section className="min-h-screen bg-gradient-to-b from-transparent to-[#0a0a0a] text-white py-12 sm:py-24 px-4 sm:px-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-col gap-4 sm:gap-3 mb-12 sm:mb-20">
+          <motion.h1 
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="text-3xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-100 to-gray-400"
+          >
+            What's in LetsConnect?
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="text-gray-400 text-base sm:text-xl"
+          >
+            Everything you need to build amazing open-source projects.
+          </motion.p>
+        </div>
 
+        <div className="grid grid-cols-1 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            <FeatureCard
+              icon={
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+              }
+              title="Open-Source Your Vision"
+              description="Post your project ideas for free and gather contributors from around the world."
+            />
+
+            <FeatureCard
+              icon={
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+              }
+              title="Contribute & Grow"
+              description="Collaborate on real projects, gain hands-on experience, and build a strong résumé."
+            />
+
+            <FeatureCard
+              icon={
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5l6.74-6.76z"/>
+                  <line x1="16" y1="8" x2="2" y2="22"/>
+                </svg>
+              }
+              title="Seamless Scheduling"
+              description="Stay organized with calendar-based task management and milestone tracking."
+            />
+          </div>
+
+          <GlobeCard />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            <FeatureCard
+              icon={
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              }
+              title="Community & Networking"
+              description="Join a thriving community, get recognized for your contributions, and connect with innovators."
+            />
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 

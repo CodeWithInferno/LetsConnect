@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,7 @@ import RepositorySelector from "./RepositorySelector";
 import { SkillsInput } from "@/components/ui/SkillsInput";
 
 export default function ProjectForm({ userData }) {
+  const router = useRouter();
   const [toastMessage, setToastMessage] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
@@ -46,8 +48,12 @@ export default function ProjectForm({ userData }) {
 
   const handleRepoSelect = (selectedRepo) => {
     setFormData((prev) => ({ ...prev, githubRepo: selectedRepo }));
+  
   };
-
+  
+  console.log("User Data:", userData);
+  console.log("Github Connected:", userData?.githubAccessToken);
+  
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -66,6 +72,7 @@ export default function ProjectForm({ userData }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
 
     try {
       const response = await fetch("/api/project/create", {
@@ -188,11 +195,22 @@ export default function ProjectForm({ userData }) {
                 </div>
               )}
             </div>
+            {userData?.githubAccessToken ? (
+              <RepositorySelector
+                selectedRepo={formData.githubRepo}
+                onSelectRepo={handleRepoSelect}
+              />
+            ) : (
+              <Button
+                type="button"
+                onClick={() => router.push("/settings")}
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 ..."
+              >
+                Connect To GitHub
+              </Button>
+            )}
 
-            <RepositorySelector
-              selectedRepo={formData.githubRepo}
-              onSelectRepo={handleRepoSelect}
-            />
+
 
             {/* Project Title */}
             <div className="space-y-2">

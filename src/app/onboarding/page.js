@@ -22,7 +22,6 @@ import {
 import Cropper from "react-easy-crop";
 import { SkillsInput } from "@/components/ui/SkillsInput";
 
-
 // CountryCodeSelect Component
 const allCountries = [
   { code: "+1", flag: "🇺🇸", name: "United States" },
@@ -54,8 +53,28 @@ function CountryCodeSelect({ value, onValueChange }) {
     </Select>
   );
 }
+// --- FancyOTPInput Component ---
+// This component renders four input boxes for the OTP.
+function FancyOTPInput({ length = 4, onChange }) {
+  const [values, setValues] = useState(Array(length).fill(""));
+  const inputsRef = useRef([]);
+
+  const handleChange = (index, e) => {
+    const newValue = e.target.value.slice(-1); // Only the last character
+    const newValues = [...values];
+    newValues[index] = newValue;
+    setValues(newValues);
+    onChange(newValues.join(""));
+
+    // Auto-focus next input if a digit was entered
+    if (newValue && index < length - 1) {
+      inputsRef.current[index + 1].focus();
+    }
+  };
+}
 
 export default function OnboardingForm() {
+  
   const [currentStep, setCurrentStep] = useState(0);
   const [images, setImages] = useState([]);
   const [formData, setFormData] = useState({
@@ -69,6 +88,9 @@ export default function OnboardingForm() {
     skills: [],
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
+  const [otp, setOtp] = useState("");
+  const [otpOpen, setOtpOpen] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState(null);
   const [image, setImage] = useState(null); // For the image to be cropped
   const [croppedImage, setCroppedImage] = useState(null); // For the cropped image preview
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -79,12 +101,13 @@ export default function OnboardingForm() {
   const fileInputRef = useRef(null);
   const router = useRouter();
 
-
   const checkUsernameAvailability = async (username) => {
     if (!username) return;
 
     try {
-      const response = await fetch(`/api/user/check-username?username=${username}`);
+      const response = await fetch(
+        `/api/user/check-username?username=${username}`
+      );
       const data = await response.json();
       setUsernameAvailable(data.available);
     } catch (error) {
@@ -108,6 +131,7 @@ export default function OnboardingForm() {
 
     checkOnboardingStatus();
   }, []);
+  
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -188,8 +212,46 @@ export default function OnboardingForm() {
       }, "image/jpeg");
     });
   };
-
   
+      // --- OTP Functions ---
+      const sendOtp = async () => {
+        const phone_number = `${formData.phoneExtension}${formData.number}`;
+        try {
+          const res = await fetch("/api/auth/send-sms", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone_number }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            setOtpOpen(true); // Open OTP input fields
+          } else {
+            alert("Failed to send OTP: " + data.error);
+          }
+        } catch (error) {
+          console.error("Error sending OTP:", error);
+        }
+      };
+      const verifyOtp = async () => {
+        const phone_number = `${formData.phoneExtension}${formData.number}`;
+        try {
+          const res = await fetch("/api/auth/verify-sms", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone_number, otp }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            setVerificationStatus("Verified");
+          } else {
+            setVerificationStatus("Verification failed: " + data.error);
+          }
+        } catch (error) {
+          console.error("Verification error:", error);
+        }
+      };
+    
+
   const steps = [
     {
       id: 1,
@@ -207,7 +269,7 @@ export default function OnboardingForm() {
             className="mt-2"
             required
           />
-    
+
           <Label htmlFor="username" className="text-lg font-semibold mt-4">
             Username
           </Label>
@@ -255,6 +317,24 @@ export default function OnboardingForm() {
               required
             />
           </div>
+          {!otpOpen ? (
+            <Button type="button" onClick={sendOtp} className="mt-4">
+              Verify
+            </Button>
+          ) : (
+            <>
+              <Label htmlFor="otp" className="text-lg font-semibold mt-4">
+                Enter OTP
+              </Label>
+              <FancyOTPInput onChange={(code) => setOtp(code)} />
+              <Button type="button" onClick={verifyOtp} className="mt-2">
+                Submit OTP
+              </Button>
+              {verificationStatus && (
+                <p className="mt-2">{verificationStatus}</p>
+              )}
+            </>
+          )}
         </>
       ),
     },
@@ -343,21 +423,22 @@ export default function OnboardingForm() {
       id: 5,
       fields: (
         <>
-      <Label className="text-lg font-semibold">Skills</Label>
-      <SkillsInput
-        value={formData.skills || []} // Ensure it's always an array
-        onChange={(skills) => setFormData({ ...formData, skills })}
-      />
+          <Label className="text-lg font-semibold">Skills</Label>
+          <SkillsInput
+            value={formData.skills || []} // Ensure it's always an array
+            onChange={(skills) => setFormData({ ...formData, skills })}
+          />
 
-      <Label className="text-lg font-semibold mt-4">Programming Languages</Label>
-      <SkillsInput
-        value={formData.programmingLanguages || []} // Ensure it's always an array
-        onChange={(programmingLanguages) =>
-          setFormData({ ...formData, programmingLanguages })
-        }
-      />
-
-      </>
+          <Label className="text-lg font-semibold mt-4">
+            Programming Languages
+          </Label>
+          <SkillsInput
+            value={formData.programmingLanguages || []} // Ensure it's always an array
+            onChange={(programmingLanguages) =>
+              setFormData({ ...formData, programmingLanguages })
+            }
+          />
+        </>
       ),
     },
     {
@@ -406,24 +487,24 @@ export default function OnboardingForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     let imageUrl = formData.profilePicture;
-  
+
     // Upload Image Only If a New File Is Selected
     if (formData.profilePicture instanceof File) {
       const uploadFormData = new FormData();
       uploadFormData.append("file", formData.profilePicture);
-  
+
       try {
         const uploadResponse = await fetch("/api/user/uploadImage", {
           method: "POST",
           body: uploadFormData,
         });
-  
+
         if (!uploadResponse.ok) {
           throw new Error("Image upload failed");
         }
-  
+
         const { url } = await uploadResponse.json();
         imageUrl = url;
       } catch (error) {
@@ -432,7 +513,7 @@ export default function OnboardingForm() {
         return;
       }
     }
-  
+
     const userData = {
       name: formData.name,
       username: formData.username,
@@ -441,25 +522,24 @@ export default function OnboardingForm() {
       profilePicture: imageUrl,
       role: formData.role,
       timezone: formData.timezone,
-      
+
       // ✅ Ensure only strings are sent (Prisma needs string array)
       skills: formData.skills || [],
-      programmingLanguages: formData.programmingLanguages || []
+      programmingLanguages: formData.programmingLanguages || [],
     };
-    
-  
+
     try {
       const response = await fetch("/api/user/onboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Profile creation failed");
       }
-  
+
       const result = await response.json();
       console.log("Onboarding success:", result);
       alert("Profile created successfully!");
@@ -469,7 +549,6 @@ export default function OnboardingForm() {
       alert(error.message || "Failed to create profile. Please try again.");
     }
   };
-  
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">

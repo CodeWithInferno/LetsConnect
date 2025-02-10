@@ -1,3 +1,4 @@
+// prisma/seed.js
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
@@ -7,27 +8,29 @@ const predefinedSkills = [
   'UI/UX',
   'Blockchain',
   'TypeScript',
-  'Machine Learning'
+  'Machine Learning',
 ];
 
 async function main() {
-  // Clean existing data
-  await prisma.userSkill.deleteMany();
-  await prisma.skill.deleteMany();
+  // Clear old data if needed (optional)
+  // await prisma.userSkill.deleteMany();
+  // await prisma.skill.deleteMany();
 
   // Create predefined skills
   await prisma.skill.createMany({
-    data: predefinedSkills.map(name => ({
+    data: predefinedSkills.map((name) => ({
       name,
-      isCustom: false
+      isCustom: false,
     })),
-    skipDuplicates: true
+    skipDuplicates: true, // don't error if it already exists
   });
+
+  console.log('✅ Seed completed');
 }
 
 main()
-  .catch(e => {
-    console.error(e);
+  .catch((e) => {
+    console.error('❌ Seed failed', e);
     process.exit(1);
   })
   .finally(async () => {

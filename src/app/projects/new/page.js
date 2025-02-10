@@ -17,6 +17,7 @@ export default async function NewProjectPage() {
       select: { 
         role: true,
         name: true,
+        githubAccessToken: true,
         organizations: {
           select: {
             organization: {

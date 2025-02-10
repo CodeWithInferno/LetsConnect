@@ -8,7 +8,7 @@ import WaveDivider from "./WaveDivider";
 
 export default function HeroSection() {
   return (
-    <section className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden bg-gradient-to-b from-[#090909] to-[#151515] px-6">
+    <section className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden bg-transparent px-6">
       {/* Particles Background */}
       <Particles
         className="absolute inset-0 z-0 opacity-40"

@@ -82,8 +82,9 @@ export default function DashboardPage() {
       const { data } = await response.json();
       if (data?.myUser) {
         setUserId(data.myUser.id);
-        setUserRole(data.myUser.role);
+        setUserRole(data.myUser.role.toLowerCase());        
         setOrgs(data.myUser.organizations || []);
+        
       }
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -138,7 +139,7 @@ export default function DashboardPage() {
     document.documentElement.classList.toggle("dark");
   };
 
-  const isManagerWithoutOrg = userRole === "Manager" && orgs.length === 0;
+  const isManagerWithoutOrg = userRole?.toLowerCase() === "manager" && orgs.length === 0;
   const isContributor = userRole === "Contributor";
 
   return (
@@ -161,7 +162,12 @@ export default function DashboardPage() {
                 <Sun className="h-5 w-5" />
               )}
             </Button>
-            <Button variant="outline" onClick={() => router.push("/settings")} size="icon" className="rounded-full">
+            <Button
+              variant="outline"
+              onClick={() => router.push("/settings")}
+              size="icon"
+              className="rounded-full"
+            >
               <Settings className="h-5 w-5" />
             </Button>
             <Button variant="outline" size="icon" className="rounded-full">

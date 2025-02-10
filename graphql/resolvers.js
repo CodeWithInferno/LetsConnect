@@ -163,11 +163,17 @@ const resolvers = {
         throw new Error("Not logged in");
       }
     
+// In your myUser resolver
       const dbUser = await prisma.user.findUnique({
         where: { email: user.email },
         include: {
-          skills: { include: { skill: true } },  // ✅ Ensure skills are included
-          programmingLanguages: true,  // ✅ Ensure programming languages are included
+          skills: { include: { skill: true } },
+          programmingLanguages: true,
+          organizations: { // Add this section
+            include: {
+              organization: true // Include actual organization data
+            }
+          }
         },
       });
     
