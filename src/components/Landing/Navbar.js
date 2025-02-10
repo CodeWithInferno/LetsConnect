@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useAuthUser } from "@/context/AuthUserContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
 
 export default function Navbar() {
   const { user, userInfo, isLoading } = useAuthUser();
@@ -26,10 +25,18 @@ export default function Navbar() {
 
       {/* Center: Navigation Links (Hidden on Mobile) */}
       <div className="hidden md:flex space-x-6">
-        <a href="/about" className="text-gray-300 hover:text-white transition-colors">About</a>
-        <a href="/features" className="text-gray-300 hover:text-white transition-colors">Features</a>
-        <a href="/pricing" className="text-gray-300 hover:text-white transition-colors">Pricing</a>
-        <a href="/contact" className="text-gray-300 hover:text-white transition-colors">Contact</a>
+        <a href="#about" className="text-gray-300 hover:text-white transition-colors">
+          About
+        </a>
+        <a href="#features" className="text-gray-300 hover:text-white transition-colors">
+          Features
+        </a>
+        <a href="#contribute" className="text-gray-300 hover:text-white transition-colors">
+          contribute
+        </a>
+        <a href="#contact" className="text-gray-300 hover:text-white transition-colors">
+          Contact
+        </a>
       </div>
 
       {/* Right Side: Authentication & Actions */}
@@ -44,27 +51,55 @@ export default function Navbar() {
                   src={userInfo?.profile_picture || user?.picture}
                   alt={userInfo?.username || user?.name}
                 />
-                <AvatarFallback>{userInfo?.username?.charAt(0) || user?.name?.charAt(0)}</AvatarFallback>
+                <AvatarFallback>
+                  {userInfo?.username?.charAt(0) || user?.name?.charAt(0)}
+                </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-gray-900/95 backdrop-blur-lg text-white border border-gray-700">
+            <DropdownMenuContent
+              align="end"
+              className="w-48 bg-gray-900/95 backdrop-blur-lg text-white border border-gray-700"
+            >
               <DropdownMenuItem asChild>
-                <a href="/dashboard" className="block w-full px-2 py-1 hover:bg-gray-800/80">Dashboard</a>
+                <a
+                  href="#dashboard"
+                  className="block w-full px-2 py-1 hover:bg-gray-800/80"
+                >
+                  Dashboard
+                </a>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <a href="/settings" className="block w-full px-2 py-1 hover:bg-gray-800/80">Settings</a>
+                <a
+                  href="#settings"
+                  className="block w-full px-2 py-1 hover:bg-gray-800/80"
+                >
+                  Settings
+                </a>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <a href="/api/auth/logout" className="block w-full px-2 py-1 hover:bg-gray-800/80">Logout</a>
+                <a
+                  href="/api/auth/logout"
+                  className="block w-full px-2 py-1 hover:bg-gray-800/80"
+                >
+                  Logout
+                </a>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
           <>
-            <Button variant="outline" className="text-white border-gray-700 hover:bg-gray-700/50 backdrop-blur-lg" asChild>
+            <Button
+              variant="outline"
+              className="text-white border-gray-700 hover:bg-gray-700/50 backdrop-blur-lg"
+              asChild
+            >
               <a href="/api/auth/login">Login</a>
             </Button>
-            <Button variant="default" className="bg-blue-600 text-white hover:bg-blue-700 backdrop-blur-lg" asChild>
+            <Button
+              variant="default"
+              className="bg-blue-600 text-white hover:bg-blue-700 backdrop-blur-lg"
+              asChild
+            >
               <a href="/api/auth/login">Get Started</a>
             </Button>
           </>
@@ -82,10 +117,30 @@ export default function Navbar() {
       {/* Mobile Dropdown Menu */}
       {isMenuOpen && (
         <div className="absolute top-16 right-4 bg-gray-900/95 backdrop-blur-lg border border-gray-700 rounded-lg w-48 shadow-lg md:hidden">
-          <a href="/about" className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800/50">About</a>
-          <a href="/features" className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800/50">Features</a>
-          <a href="/pricing" className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800/50">Pricing</a>
-          <a href="/contact" className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800/50">Contact</a>
+          <a
+            href="#about"
+            className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800/50"
+          >
+            About
+          </a>
+          <a
+            href="#features"
+            className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800/50"
+          >
+            Features
+          </a>
+          <a
+            href="#contribute"
+            className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800/50"
+          >
+            Contribute
+          </a>
+          <a
+            href="#contact"
+            className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800/50"
+          >
+            Contact
+          </a>
         </div>
       )}
     </nav>
