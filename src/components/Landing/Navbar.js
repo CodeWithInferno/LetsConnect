@@ -62,7 +62,7 @@ export default function Navbar() {
             >
               <DropdownMenuItem asChild>
                 <a
-                  href="#dashboard"
+                  href="/dashboard"
                   className="block w-full px-2 py-1 hover:bg-gray-800/80"
                 >
                   Dashboard
@@ -70,7 +70,7 @@ export default function Navbar() {
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <a
-                  href="#settings"
+                  href="/settings"
                   className="block w-full px-2 py-1 hover:bg-gray-800/80"
                 >
                   Settings

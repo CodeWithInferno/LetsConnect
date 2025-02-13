@@ -8,37 +8,40 @@ datasource db {
 }
 
 model User {
-  id                   String                    @id @default(uuid())
-  name                 String?
-  number               String?
-  profile_picture      String?
-  joined_at            DateTime                  @default(now())
-  role                 String?
-  interests            String?
-  qualifications       String?
-  rating               Int?
-  timezone             String?
-  phone_extension      String?
-  username             String                    @unique
-  email                String                    @unique
-  githubAccessToken    String?
-  githubAvatar         String?
-  githubUsername       String?
-  githubRefreshToken   String?
-  assignedKanbanTasks  KanbanTask[]              @relation("TaskAssignee")
-  modifiedKanbanTasks  KanbanTask[]              @relation("TaskLastModifiedBy")
-  notifications        Notification[]
-  organizations        OrganizationMember[]
-  ownedProjects        Project[]                 @relation("ProjectOwner")
-  projectMemberships   ProjectMember[]
-  skills               UserSkill[]
-  projects             Project[]                 @relation("UserProjects")
-  programmingLanguages UserProgrammingLanguage[]
-    // NEW FIELDS:
-  organizedCalendarEvents CalendarEvent[]         @relation("OrganizerCalendarEvents")
+  id                        String                    @id @default(uuid())
+  name                      String?
+  number                    String?
+  bio                       String?                   // NEW FIELD
+  website                   String?                   // NEW FIELD
+  location                  String?                   // NEW FIELD
+  profile_picture           String?
+  joined_at                 DateTime                  @default(now())
+  role                      String?
+  qualifications            String?
+  rating                    Int?
+  followers                 Int?
+  following                 Int?
+  timezone                  String?
+  phone_extension           String?
+  username                  String                    @unique
+  email                     String                    @unique
+  githubAccessToken         String?
+  githubAvatar              String?
+  githubUsername            String?
+  githubRefreshToken        String?
+  assignedKanbanTasks       KanbanTask[]              @relation("TaskAssignee")
+  modifiedKanbanTasks       KanbanTask[]              @relation("TaskLastModifiedBy")
+  notifications             Notification[]
+  organizations             OrganizationMember[]
+  ownedProjects             Project[]                 @relation("ProjectOwner")
+  projectMemberships        ProjectMember[]
+  skills                    UserSkill[]
+  projects                  Project[]                 @relation("UserProjects")
+  programmingLanguages      UserProgrammingLanguage[]
+  organizedCalendarEvents   CalendarEvent[]           @relation("OrganizerCalendarEvents")
   calendarEventParticipants CalendarEventParticipant[] @relation("CalendarEventParticipants")
-  assignedCalendarEvents  CalendarEvent[]         @relation("AssignedCalendarEvents")
-
+  assignedCalendarEvents    CalendarEvent[]           @relation("AssignedCalendarEvents")
+  interests                 UserInterest[]            // NEW MANY-TO-MANY relation for interests
 }
 
 model UserProgrammingLanguage {
@@ -62,11 +65,8 @@ model Skill {
   name         String         @unique
   isCustom     Boolean        @default(false)
   users        UserSkill[]
-  // Remove the old projects field if not needed.
-  // Instead, add an explicit relation to ProjectSkill:
   ProjectSkill ProjectSkill[]
 }
-
 
 model UserSkill {
   userId  String
@@ -75,6 +75,21 @@ model UserSkill {
   user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, skillId])
+}
+
+model Interest {
+  id    String        @id @default(uuid())
+  name  String        @unique
+  users UserInterest[]
+}
+
+model UserInterest {
+  userId     String
+  interestId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interest   Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@id([userId, interestId])
 }
 
 model Organization {
@@ -125,10 +140,8 @@ model Project {
   projectMembers User[]          @relation("UserProjects")
   languages      ProgrammingLanguage[] @relation("ProjectLanguages")
   skillsRequired ProjectSkill[]
-  certificateEligible  Boolean?                 @default(false)  // <-- Added field
+  certificateEligible  Boolean?    @default(false)
   calendarEvents CalendarEvent[] @relation("ProjectCalendarEvents")
-
-
 }
 
 model ProjectSkill {
@@ -139,7 +152,6 @@ model ProjectSkill {
 
   @@id([projectId, skillId])
 }
-
 
 model ProjectMember {
   userId    String
@@ -199,12 +211,11 @@ model KanbanTask {
   updatedAt         DateTime     @updatedAt
   assigneeId        String?
   position          Int
-  // Use a named relation for the assignee
   assignee          User?        @relation("TaskAssignee", fields: [assigneeId], references: [id])
   column            KanbanColumn @relation(fields: [columnId], references: [id])
   project           Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  lastModifiedByUser User? @relation("TaskLastModifiedBy", fields: [lastModifiedBy], references: [id])
-  lastModifiedBy    String?  // This is just the foreign key scalar field
+  lastModifiedByUser User?       @relation("TaskLastModifiedBy", fields: [lastModifiedBy], references: [id])
+  lastModifiedBy    String?
 }
 
 model CalendarEvent {
@@ -214,34 +225,30 @@ model CalendarEvent {
   startTime             DateTime
   endTime               DateTime
   location              String?
-  recurrence            String?                      // e.g. an iCal RRULE
+  recurrence            String?
   reminderMinutesBefore Int?
   organizerId           String
   projectId             String?
   createdAt             DateTime                     @default(now())
   updatedAt             DateTime                     @updatedAt
-
   organizer             User                         @relation("OrganizerCalendarEvents", fields: [organizerId], references: [id], onDelete: Cascade)
   project               Project?                     @relation("ProjectCalendarEvents", fields: [projectId], references: [id], onDelete: Cascade)
   participants          CalendarEventParticipant[]
-  assignedToId   String?
-  assignedTo     User? @relation("AssignedCalendarEvents", fields: [assignedToId], references: [id], onDelete: SetNull)
-  priority   String?   // e.g. "High", "Medium", "Low"
-  deadline   DateTime?
+  assignedToId          String?
+  assignedTo            User?                        @relation("AssignedCalendarEvents", fields: [assignedToId], references: [id], onDelete: SetNull)
+  priority              String?
+  deadline              DateTime?
   @@index([organizerId])
   @@index([projectId])
 }
+
 model CalendarEventParticipant {
   eventId   String
   userId    String
   event     CalendarEvent   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user      User            @relation("CalendarEventParticipants", fields: [userId], references: [id], onDelete: Cascade)
-
   @@id([eventId, userId])
 }
-
-
-
 
 enum MembershipStatus {
   PENDING

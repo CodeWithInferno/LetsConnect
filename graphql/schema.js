@@ -39,6 +39,10 @@ const typeDefs = gql`
     user: User
     status: String
   }
+    extend type Query {
+  projectBySlug(slug: String!): Project
+}
+
 
   type ProgrammingLanguage {
     id: ID!
@@ -54,6 +58,8 @@ const typeDefs = gql`
     email: String
     profile_picture: String
     role: String
+    joinedAt: String 
+    programmingLanguages: [ProgrammingLanguage!]!
     organizations: [Organization!]!
     bio: String
     website: String
@@ -62,6 +68,7 @@ const typeDefs = gql`
     qualifications: String
     skills: [UserSkill!]!
     githubUsername: String
+  interests: [UserInterest!]! 
     githubAvatar: String
   }
   type UserSkill {
@@ -71,6 +78,16 @@ const typeDefs = gql`
     id: ID!
     name: String!
   }
+
+
+    # -------------------------------
+  # Interest Type
+  # -------------------------------
+  type Interest {
+    id: ID!
+    name: String!
+  }
+
 
   # -------------------------------
   # Organization type
@@ -115,7 +132,8 @@ const typeDefs = gql`
 
     # User
     myUser: User!
-
+    allSkills: [Skill!]!
+    allInterests: [Interest!]!
     # Notifications
     myNotifications: [Notification!]!
   }
@@ -218,14 +236,19 @@ const typeDefs = gql`
     bio: String
     website: String
     location: String
-    skills: [String!]
+    skills: [String!]          # Array of skill IDs
+    interests: [String!] 
     profile_picture: String
   }
 
   extend type Mutation {
     updateProfile(input: UpdateProfileInput!): User!
   }
-
+type Skill {
+  id: ID!
+  name: String!
+  isCustom: Boolean!
+}
   # -------------------------------
   # Calendar Event Types
   # -------------------------------
@@ -260,6 +283,8 @@ const typeDefs = gql`
   extend type Query {
     calendarEvents(projectId: ID!): [CalendarEvent!]!
     calendarEvent(eventId: ID!): CalendarEvent
+      allSkills: [Skill!]!
+
   }
 
   # -------------------------------
@@ -294,6 +319,11 @@ const typeDefs = gql`
 
     deleteCalendarEvent(eventId: ID!): CalendarEvent!
   }
+type UserInterest {
+  interest: Interest!
+}
+
 `;
 
 module.exports = typeDefs;
+

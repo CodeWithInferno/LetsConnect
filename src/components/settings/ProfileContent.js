@@ -1,5 +1,4 @@
-// components/ProfileContent.jsx
-'use client';
+"use client";
 
 import React from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -17,12 +16,27 @@ export default function ProfileContent({ user, projects }) {
         <CardContent className="space-y-4">
           <div>
             <span className="font-medium">Bio: </span>
-            <span>{user?.bio || "No bio set."}</span>
+            <span className="whitespace-pre-line">
+              {user?.bio || "No bio set."}
+            </span>
           </div>
+
           <div>
             <span className="font-medium">Website: </span>
-            <span>{user?.website || "Not provided"}</span>
+            {user?.website ? (
+              <a
+                href={user.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                {user.website}
+              </a>
+            ) : (
+              <span>Not provided</span>
+            )}
           </div>
+
           <div>
             <span className="font-medium">Location: </span>
             <span>{user?.location || "Not provided"}</span>
@@ -47,6 +61,22 @@ export default function ProfileContent({ user, projects }) {
               )}
             </div>
           </div>
+          <div>
+            <span className="font-medium">Interests: </span>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {user?.interests?.map(({ interest }) => (
+                <span
+                  key={interest.id}
+                  className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+                >
+                  {interest.name}
+                </span>
+              ))}
+              {(!user?.interests || user.interests.length === 0) && (
+                <span className="text-gray-500">No interests added yet</span>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -60,7 +90,10 @@ export default function ProfileContent({ user, projects }) {
             <div className="flex items-center gap-4">
               <Avatar className="w-10 h-10">
                 {user.githubAvatar ? (
-                  <AvatarImage src={user.githubAvatar} alt={user.githubUsername} />
+                  <AvatarImage
+                    src={user.githubAvatar}
+                    alt={user.githubUsername}
+                  />
                 ) : (
                   <AvatarFallback>{user.githubUsername[0]}</AvatarFallback>
                 )}
@@ -70,8 +103,8 @@ export default function ProfileContent({ user, projects }) {
           ) : (
             <>
               <p>
-                Connect your GitHub account to view your repositories, pull requests,
-                and commit activity.
+                Connect your GitHub account to view your repositories, pull
+                requests, and commit activity.
               </p>
               <ConnectGitHubButton />
             </>
@@ -114,7 +147,10 @@ export default function ProfileContent({ user, projects }) {
         <CardContent className="space-y-4">
           {projects && projects.length > 0 ? (
             projects.map((proj) => (
-              <div key={proj.id} className="p-4 border rounded-md hover:shadow-md">
+              <div
+                key={proj.id}
+                className="p-4 border rounded-md hover:shadow-md"
+              >
                 <h3 className="font-bold">{proj.title}</h3>
                 <p className="text-gray-600 text-sm">
                   {proj.description || "No description provided."}

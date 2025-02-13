@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
-export default function ProfileHeader({ user }) {
+export default function ProfileHeader({ user, onEdit }) {
   return (
     <Card className="p-6">
       <div className="flex items-center gap-4">
@@ -23,7 +23,7 @@ export default function ProfileHeader({ user }) {
           <p className="text-sm text-gray-500">@{user?.username}</p>
           <p className="text-sm text-gray-500">{user?.email}</p>
         </div>
-        <Button variant="outline" className="ml-auto">
+        <Button variant="outline" className="ml-auto" onClick={onEdit}>
           <Edit className="mr-2 h-4 w-4" /> Edit Profile
         </Button>
       </div>

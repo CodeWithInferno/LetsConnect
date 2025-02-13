@@ -1,29 +1,32 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Loader2 } from "lucide-react";
 import ProfileHeader from "@/components/settings/ProfileHeader";
 import ProfileContent from "@/components/settings/ProfileContent";
+import EditProfileForm from "@/components/settings/EditableProfile";
 
 export default function SettingsPage() {
   const [userData, setUserData] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [availableSkills, setAvailableSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const { user: authUser, isLoading: authLoading } = useUser();
   const router = useRouter();
 
-  // Redirect to login if not logged in
+  // Redirect to login if not authenticated.
   useEffect(() => {
     if (!authLoading && !authUser) {
       router.push("/api/auth/login");
     }
   }, [authUser, authLoading, router]);
 
-  // Fetch data once the Auth0 user is available
+  // Fetch profile, projects, and available skills data when the user is available.
   useEffect(() => {
     if (!authLoading && authUser?.email) {
       fetchData();
@@ -38,6 +41,12 @@ export default function SettingsPage() {
           myProfile {
             id
             name
+            interests {
+              interest {
+                id
+                name
+              }
+            }
             email
             username
             profile_picture
@@ -45,24 +54,28 @@ export default function SettingsPage() {
             bio
             website
             location
-            organizations {
-              id
-              name
-              logo
-            }
             skills {
               skill {
                 id
                 name
               }
             }
-          githubUsername
-          githubAvatar  
+            organizations {
+              id
+              name
+              logo
+            }
+            githubUsername
+            githubAvatar  
           }
           myProjects {
             id
             title
             description
+          }
+          allSkills {
+            id
+            name
           }
         }
       `;
@@ -80,6 +93,7 @@ export default function SettingsPage() {
       }
       setUserData(data.myProfile);
       setProjects(data.myProjects);
+      setAvailableSkills(data.allSkills);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError(err.message);
@@ -102,8 +116,22 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
-      <ProfileHeader user={userData} />
-      <ProfileContent user={userData} projects={projects} />
+      {/* When the edit button is clicked in ProfileHeader, isEditing becomes true */}
+      <ProfileHeader user={userData} onEdit={() => setIsEditing(true)} />
+      {isEditing ? (
+        <EditProfileForm
+          initialData={userData}
+          availableSkills={availableSkills}
+          onProfileUpdated={(updatedProfile) => {
+            setUserData(updatedProfile);
+            setIsEditing(false);
+          }}
+          onCancel={() => setIsEditing(false)}
+        />
+      ) : (
+        <ProfileContent user={userData} projects={projects} />
+      )}
     </div>
   );
 }
+
