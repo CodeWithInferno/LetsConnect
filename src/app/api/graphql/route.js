@@ -12,7 +12,7 @@ import mainResolvers from "../../../../graphql/resolvers";
 import userResolvers from "../../../../graphql/userResolvers";
 import calendarResolvers from "../../../../graphql/CalendarResolver";
 import prisma from "../../../lib/prisma";
-import profileResolvers from "../../../../graphql/Profile";
+import {profileResolvers} from "../../../../graphql/Profile";
 import projectDetailsResolvers from "../../../../graphql/ProjectDetails";
 
 // Merge resolvers

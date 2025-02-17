@@ -75,15 +75,15 @@ export default function ProjectPage() {
                   githubAvatar
                 }
               }
-              skillsRequired {
-                id
-                name
-                isCustom
-              }
-              languages {
-                id
-                name
-              }
+            skillsRequired {
+              id
+              name
+              isCustom
+            }
+            languages {
+              id
+              name
+            }
             }
           }
         `

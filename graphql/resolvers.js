@@ -220,6 +220,55 @@ const resolvers = {
       if (!board) throw new Error("Kanban board not found");
       return board;
     },
+    globalSearch: async (_, { term }, { prisma }) => {
+      const users = await prisma.user.findMany({
+        where: {
+          OR: [
+            { username: { contains: term, mode: "insensitive" } },
+            { name: { contains: term, mode: "insensitive" } },
+          ],
+        },
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          // more fields if you want
+        },
+      });
+      // Search Organizations (by name)
+      const organizations = await prisma.organization.findMany({
+        where: {
+          name: { contains: term, mode: "insensitive" },
+        },
+        select: {
+          id: true,
+          name: true,
+          logo: true,
+          // remove slug unless you have one
+        },
+      });
+    
+      const projects = await prisma.project.findMany({
+        where: {
+          title: { contains: term, mode: "insensitive" },
+        },
+        select: {
+          id: true,
+          title: true,
+          // remove slug unless you have one
+        },
+      });
+      
+      // Attach a __typename field so the client can differentiate
+      const results = [
+        ...users.map(u => ({ __typename: "User", ...u })),
+        ...organizations.map(o => ({ __typename: "Organization", ...o })),
+        ...projects.map(p => ({ __typename: "Project", ...p })),
+      ];
+    
+      return results;
+    },
+    
     
   },
 

@@ -22,6 +22,7 @@ const typeDefs = gql`
     organizationId: String
     createdAt: String
     updatedAt: String
+    
 
     # Relationships
     owner: User
@@ -68,9 +69,15 @@ const typeDefs = gql`
     qualifications: String
     skills: [UserSkill!]!
     githubUsername: String
+
   interests: [UserInterest!]! 
     githubAvatar: String
   }
+extend type Query {
+  userByUsername(username: String!): User
+  userProjects(username: String!): [Project!]!
+}
+
   type UserSkill {
     skill: Skill!
   }
@@ -92,11 +99,13 @@ const typeDefs = gql`
   # -------------------------------
   # Organization type
   # -------------------------------
-  type Organization {
-    id: ID!
-    name: String
-    logo: String
-  }
+type Organization {
+  id: ID!
+  name: String
+  logo: String
+  slug: String  # <-- Add this
+}
+
 
   # -------------------------------
   # Notification type
@@ -321,6 +330,11 @@ type Skill {
   }
 type UserInterest {
   interest: Interest!
+}
+  union SearchResult = User | Organization | Project
+
+  extend type Query {
+  globalSearch(term: String!): [SearchResult!]!
 }
 
 `;

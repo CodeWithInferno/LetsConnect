@@ -9,7 +9,9 @@ export const profileResolvers = {
         include: {
           skills: { include: { skill: true } },
           interests: { include: { interest: true } },
-          organizations: true,
+          organizations: {
+            include: { organization: true },
+          },
           programmingLanguages: { include: { language: true } },
         },
       });
@@ -24,6 +26,34 @@ export const profileResolvers = {
           .map(pl => pl.language)
           .filter(lang => lang != null),
       };
+    },
+    userByUsername: async (_, { username }, { prisma }) => {
+      return prisma.user.findUnique({
+        where: { username },
+        include: {
+          skills: { include: { skill: true } },
+          interests: { include: { interest: true } },
+          organizations: true,
+          programmingLanguages: { include: { language: true } },
+        },
+      });
+    },
+    // If you want userProjects:
+    userProjects: async (_, { username }, { prisma }) => {
+      // 1) find user by username
+      const user = await prisma.user.findUnique({
+        where: { username },
+      });
+      if (!user) return [];
+      // 2) find projects or memberships
+      const memberships = await prisma.projectMember.findMany({
+        where: { userId: user.id },
+        include: {
+          project: { include: { languages: true } },
+        },
+      });
+      // 3) map the membership to the actual project
+      return memberships.map((m) => m.project);
     },
   },
   Mutation: {

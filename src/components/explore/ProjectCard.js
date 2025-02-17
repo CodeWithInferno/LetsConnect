@@ -1,13 +1,12 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { Calendar, Code2, Briefcase, Award } from "lucide-react";
+import { Calendar, Code2, Briefcase, Award, ArrowRight } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardHeader, CardContent } from "@/components/ui/card"; // optional if needed
 import { Button } from "@/components/ui/button";
 
-// An example “applyToProject” GraphQL mutation (if needed elsewhere)
+// Keeping the existing applyToProject function unchanged
 async function applyToProject(projectId) {
   const mutation = `
     mutation ApplyToProject($projectId: String!) {
@@ -21,7 +20,7 @@ async function applyToProject(projectId) {
   const res = await fetch("/api/graphql", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    credentials: "include", // if needed for auth
+    credentials: "include",
     body: JSON.stringify({
       query: mutation,
       variables: { projectId },
@@ -33,16 +32,14 @@ async function applyToProject(projectId) {
 }
 
 const ProjectCard = ({ project, currentUser }) => {
-  // Local UI state for handling join actions (if applicable)
+  // ... (keeping all the existing state and helper functions) ...
   const [joining, setJoining] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
 
-  // Determine if the current user is a member or pending
   const userMembership = project.members?.find((m) => m.user?.id === currentUser?.id);
   const userIsMember = userMembership && userMembership.status === "ACTIVE";
   const userIsPending = userMembership && userMembership.status === "PENDING";
 
-  // Handler for the "Join" button
   const handleJoinClick = async () => {
     setJoining(true);
     try {
@@ -57,16 +54,13 @@ const ProjectCard = ({ project, currentUser }) => {
     }
   };
 
-  // Format or truncate the description (if needed)
   const truncatedDescription =
     project.description && project.description.length > 100
       ? `${project.description.slice(0, 100)}...`
       : project.description || "Project description here.";
 
-  // Format the deadline. If the deadline is provided as a number or a string, convert it properly.
   let formattedDeadline = "No deadline";
   if (project.deadline) {
-    // If deadline is a numeric string, ensure it’s cast to a number
     const deadlineNum = Number(project.deadline);
     const d = new Date(deadlineNum);
     if (!isNaN(d.getTime())) {
@@ -78,7 +72,6 @@ const ProjectCard = ({ project, currentUser }) => {
     }
   }
 
-  // Render owner's avatar section
   const OwnerAvatar = () => {
     const { owner } = project;
     return (
@@ -127,37 +120,57 @@ const ProjectCard = ({ project, currentUser }) => {
             <span className="text-gray-500 dark:text-gray-400">No Banner Image</span>
           </div>
         )}
-      </div>
 
-      {/* The "Join" Button in top-right, below banner */}
-      <div className="absolute top-36 right-4 transform -translate-y-1/2 flex">
-        {!currentUser ? (
-          <></>
-        ) : userIsMember ? (
-          <div className="px-3 py-1 rounded-md bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-sm">
-            Joined
-          </div>
-        ) : userIsPending || hasJoined ? (
-          <div className="px-3 py-1 rounded-md bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-sm">
-            Pending
-          </div>
-        ) : (
-          <Button variant="outline" size="sm" disabled={joining} onClick={handleJoinClick}>
-            {joining ? "Joining..." : "Join"}
-          </Button>
-        )}
+        {/* Action Buttons Container - Moved inside banner */}
+        <div className="absolute bottom-4 right-4 flex items-center gap-2">
+          {/* View More Button */}
+          <Link href={`/project/${project.id}`}>
+            <Button 
+              variant="secondary"
+              size="sm"
+              className="bg-white/90 hover:bg-white text-gray-800 shadow-md"
+            >
+              View More
+            </Button>
+          </Link>
+
+          {/* Join Button */}
+          {currentUser && (
+            <>
+              {userIsMember ? (
+                <div className="px-3 py-1 rounded-md bg-white/90 text-gray-800 text-sm shadow-md">
+                  Joined
+                </div>
+              ) : userIsPending || hasJoined ? (
+                <div className="px-3 py-1 rounded-md bg-white/90 text-gray-800 text-sm shadow-md">
+                  Pending
+                </div>
+              ) : (
+                <Button 
+                  variant="secondary"
+                  size="sm" 
+                  disabled={joining} 
+                  onClick={handleJoinClick}
+                  className="bg-white/90 hover:bg-white text-gray-800 shadow-md"
+                >
+                  {joining ? "Joining..." : "Join"}
+                </Button>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* Card Content */}
-      <div className="p-6 pt-2">
-        <h2 className="mt-4 text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-1">
+      <div className="p-6">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-1">
           {project.title || "Project Title"}
         </h2>
         <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
           {truncatedDescription}
         </p>
 
-        {/* Skills & Languages */}
+        {/* Rest of the content remains the same */}
         <div className="mt-4 flex flex-wrap gap-2">
           {(project.skillsRequired || []).map((skill, index) => (
             <span
@@ -177,7 +190,6 @@ const ProjectCard = ({ project, currentUser }) => {
           ))}
         </div>
 
-        {/* Additional Info */}
         <div className="mt-4 flex flex-wrap gap-4 text-sm">
           <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
             <Calendar className="w-4 h-4" />
@@ -193,7 +205,7 @@ const ProjectCard = ({ project, currentUser }) => {
           </div>
         </div>
 
-        {/* Collapsible for Team Members */}
+        {/* Collapsible Team Members section */}
         {project.members && project.members.length > 0 && (
           <Collapsible className="mt-4">
             <CollapsibleTrigger className="w-full flex items-center justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 hover:underline">
@@ -232,9 +244,6 @@ const ProjectCard = ({ project, currentUser }) => {
             </CollapsibleContent>
           </Collapsible>
         )}
-
-        {/* Join Button */}
-
       </div>
     </div>
   );
