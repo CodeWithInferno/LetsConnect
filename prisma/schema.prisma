@@ -42,6 +42,10 @@ model User {
   calendarEventParticipants CalendarEventParticipant[] @relation("CalendarEventParticipants")
   assignedCalendarEvents    CalendarEvent[]           @relation("AssignedCalendarEvents")
   interests                 UserInterest[]            // NEW MANY-TO-MANY relation for interests
+
+    // Added relations for Chat
+  chatRoomParticipants ChatRoomParticipant[] @relation("UserChatRoomParticipants")
+  chatMessages         ChatMessage[]         @relation("UserChatMessages")
 }
 
 model UserProgrammingLanguage {
@@ -142,6 +146,9 @@ model Project {
   skillsRequired ProjectSkill[]
   certificateEligible  Boolean?    @default(false)
   calendarEvents CalendarEvent[] @relation("ProjectCalendarEvents")
+    // Added relation for Chat rooms linked to this project.
+  chatRooms ChatRoom[] @relation("ProjectChatRooms")
+  
 }
 
 model ProjectSkill {
@@ -260,4 +267,44 @@ enum ProjectRole {
   OWNER
   ADMINISTRATOR
   MEMBER
+}
+
+
+enum ChatRoomType {
+  PRIVATE
+  PROJECT
+  GROUP
+}
+
+model ChatRoom {
+  id           String            @id @default(uuid())
+  roomType     ChatRoomType
+  projectId    String?
+  participants ChatRoomParticipant[]
+  messages     ChatMessage[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  // Relation with Project (only used when roomType is PROJECT)
+  project      Project?          @relation("ProjectChatRooms", fields: [projectId], references: [id])
+}
+
+model ChatRoomParticipant {
+  roomId String
+  userId String
+  room   ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user   User     @relation("UserChatRoomParticipants", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  roomId    String
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  room   ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender User     @relation("UserChatMessages", fields: [senderId], references: [id], onDelete: Cascade)
 }
