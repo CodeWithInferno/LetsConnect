@@ -14,6 +14,7 @@ import calendarResolvers from "../../../../graphql/CalendarResolver";
 import prisma from "../../../lib/prisma";
 import {profileResolvers} from "../../../../graphql/Profile";
 import projectDetailsResolvers from "../../../../graphql/ProjectDetails";
+import personalChatResolvers from "../../../../graphql/Personalchat";
 
 // Merge resolvers
 const mergedResolvers = mergeResolvers([
@@ -22,6 +23,8 @@ const mergedResolvers = mergeResolvers([
   calendarResolvers,
   profileResolvers,
   projectDetailsResolvers,
+  personalChatResolvers,
+
 ]);
 
 const server = new ApolloServer({

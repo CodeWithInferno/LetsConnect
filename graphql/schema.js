@@ -336,8 +336,42 @@ type UserInterest {
   extend type Query {
   globalSearch(term: String!): [SearchResult!]!
 }
+  enum ChatRoomType {
+  PRIVATE
+  PROJECT
+  GROUP
+}
+
+type ChatRoom {
+  id: ID!
+  roomType: ChatRoomType!
+  participants: [User!]!
+  messages: [ChatMessage!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ChatMessage {
+  id: ID!
+  roomId: ID!
+  sender: User!
+  content: String!
+  createdAt: String!
+}
+
+extend type Query {
+  # Retrieves (or creates) a personal chat room with the specified recipient.
+  personalChat(recipientId: ID!): ChatRoom
+}
+
+extend type Mutation {
+  # Sends a message to the given chat room.
+  sendChatMessage(roomId: ID!, content: String!): ChatMessage!
+}
+
 
 `;
 
 module.exports = typeDefs;
+
 
